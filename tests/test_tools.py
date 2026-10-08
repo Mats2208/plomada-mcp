@@ -34,7 +34,7 @@ def test_tool_list_and_annotations(run, tmp_path):
         return (await client.list_tools()).tools
 
     tools = {t.name: t for t in run(_session(FakeExtension(), tmp_path, body))}
-    assert len(tools) == 25
+    assert len(tools) == 26
     for name in (
         "status",
         "model_info",

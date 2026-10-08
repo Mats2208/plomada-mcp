@@ -166,6 +166,55 @@ module Plomada
       end
     end
 
+    # Furniture: one component definition per catalogue item (Plomada_<item>),
+    # one instance per placed block, on tag Mobiliario.
+    module Furniture
+      MATERIAL = { 'furniture' => 'MAT_mobiliario', 'sanitary' => 'MAT_sanitario' }.freeze
+
+      module_function
+
+      def definition(model, item)
+        name = "Plomada_#{item}"
+        defn = model.definitions[name]
+        return defn if defn && SU.kind(defn) == 'furniture_definition'
+
+        res = Geometry.furniture_parts(item)
+        defn = model.definitions.add(name)
+        mat = SU.material(model, MATERIAL[res[:family]])
+        res[:parts].each_with_index do |faces, i|
+          g = defn.entities.add_group
+          g.name = "pieza_#{i + 1}"
+          g.material = mat
+          SU.add_faces(g.entities, SU.faces_from_loops(faces))
+        end
+        SU.set_attrs(defn, 'kind' => 'furniture_definition', 'item' => item, 'family' => res[:family])
+        defn
+      end
+
+      def place(model, rec)
+        tr = Geom::Transformation.translation(SU.pt(rec['at'] + [0.0])) *
+             Geom::Transformation.rotation(ORIGIN, Z_AXIS, rec['rotation'].to_f.degrees)
+        inst = model.entities.add_instance(definition(model, rec['item']), tr)
+        inst.name = rec['item']
+        inst.layer = SU.tag(model, 'Mobiliario')
+        SU.set_attrs(inst, 'kind' => 'furniture', 'id' => rec['id'], 'item' => rec['item'],
+                           'record' => JSON.generate({ 'v' => 1, 'kind' => 'furniture' }.merge(rec)))
+      end
+    end
+
+    # Terrain: a lawn slab (Terreno, tag Entorno, MAT_cesped) whose top is the
+    # ground line, with a hole under every building so nothing overlaps.
+    module Terrain
+      module_function
+
+      def build(model, outer, holes, top, thickness, material)
+        g = SU.group_on(model, model.entities, 'Terreno', 'Entorno', material)
+        res = Geometry.slab_faces(outer, holes, top - thickness, top)
+        SU.add_faces(g.entities, res[:faces], always_build: true)
+        SU.set_attrs(g, 'kind' => 'terrain', 'storey' => 'terrain', 'top' => top, 'holes' => holes.size)
+      end
+    end
+
     # Room labels: 3D text on tag Ambientes, centred on the room point at z 10 mm.
     module Rooms
       module_function
@@ -209,6 +258,7 @@ module Plomada
           'openings' => of_kind.call(Sketchup::ComponentInstance, 'opening').map { |i| SU.record(i) }.compact,
           'rooms' => of_kind.call(Sketchup::Group, 'room').map { |g| SU.record(g) }.compact,
           'stairs' => of_kind.call(Sketchup::Group, 'stair').map { |g| SU.record(g) }.compact,
+          'furniture' => of_kind.call(Sketchup::ComponentInstance, 'furniture').map { |i| SU.record(i) }.compact,
           'storey' => storey_settings(model, storey),
           'storeys' => Storeys.list(model)
         }

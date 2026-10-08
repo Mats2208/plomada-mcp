@@ -157,3 +157,19 @@ def test_a_stair_with_a_fractional_riser_count_is_refused_by_name(tmp_path):
     _add_record(path, {**STAIR, "risers": 16.5})
     with pytest.raises(DxfPlanError, match=r"stairs\[0\]\.risers"):
         read_plan(path)
+
+
+def test_catalogue_blocks_become_furniture_records():
+    parsed = read_plan(FIXTURES / "casa_2_plantas_N00.dxf")
+    pieces = parsed.plan.to_wire()["furniture"]
+    assert sorted(p["item"] for p in pieces) == [
+        "armchair",
+        "coffee_table",
+        "dining_table_4",
+        "fridge",
+        "kitchen_counter",
+        "sofa_3_seat",
+    ]
+    sofa = next(p for p in pieces if p["item"] == "sofa_3_seat")
+    assert sofa["at"] == [100.0, 5000.0] and sofa["rotation"] == 270.0 and sofa["kind"] == "furniture"
+    assert len(parsed.plan.stairs) == 1 and not parsed.warnings

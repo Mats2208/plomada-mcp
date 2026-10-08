@@ -13,6 +13,7 @@ class TestGeometryTwoStoreys < Minitest::Test
     path = File.join(ROOT, 'tests', 'fixtures', "casa_2_plantas_#{name}_records.json")
     recs = JSON.parse(File.read(path, encoding: 'UTF-8'))
     raw = %w[wall opening room stair].to_h { |k| ["#{k}s", recs.select { |r| r['kind'] == k }] }
+    raw['furniture'] = recs.select { |r| r['kind'] == 'furniture' }
     Plomada::Plan.normalize(raw.merge('storey' => { 'name' => name, 'height' => 2800.0 }))
   end
 
@@ -45,5 +46,19 @@ class TestGeometryTwoStoreys < Minitest::Test
     slab = G.slab_faces(ext[:points], [lay[:footprint]], -150.0, 0.0)
     assert_empty slab[:skipped], 'the well lies inside the upper slab'
     assert_equal 1, slab[:faces].first[:holes].size
+  end
+
+  def test_every_catalogue_piece_is_known_and_stands_inside_the_house
+    { 'N00' => 6, 'N01' => 10 }.each do |name, count|
+      plan = storey(name)
+      assert_equal count, plan['furniture'].size, name
+      plan['furniture'].each do |f|
+        assert G.furniture_item?(f['item']), f['item']
+        G.furniture_footprint(f['item'], f['at'], f['rotation']).each do |x, y|
+          assert x.between?(99.999, 9900.001) && y.between?(99.999, 7900.001),
+                 "#{name} #{f['item']} at #{f['at']} leaves the inner face of the walls: #{[x, y]}"
+        end
+      end
+    end
   end
 end

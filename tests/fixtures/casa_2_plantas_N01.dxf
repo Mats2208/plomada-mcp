@@ -505,11 +505,11 @@ $TDUUPDATE
   9
 $TDINDWG
  40
-0.0004398148
+0.0112500000
   9
 $TDUSRTIMER
  40
-0.0004398148
+0.0112500000
   9
 $USRTIMER
  70
@@ -549,7 +549,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-11E
+178
   9
 $SURFTAB1
  70
@@ -1275,7 +1275,7 @@ ObjectDBX Classes
  90
      1152
  91
-        1
+        2
 280
      0
 281
@@ -1327,9 +1327,9 @@ AcDbViewportTableRecord
  21
 1.0
  12
-9.812928082191781
+5000.0
  22
-4.5
+4000.0
  13
 0.0
  23
@@ -1355,7 +1355,7 @@ AcDbViewportTableRecord
  37
 0.0
  40
-9.0
+10000.0
  41
 2.180650684931507
  42
@@ -2341,7 +2341,7 @@ BLOCK_RECORD
 100
 AcDbSymbolTable
  70
-     1
+     9
   0
 BLOCK_RECORD
   5
@@ -2396,6 +2396,218 @@ AcDbBlockTableRecord
 *Paper_Space0
 340
 77
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+11E
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_DOUBLE_BED
+340
+0
+102
+{BLKREFS
+331
+126
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+129
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_NIGHTSTAND
+340
+0
+102
+{BLKREFS
+331
+12E
+331
+131
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+134
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_WARDROBE
+340
+0
+102
+{BLKREFS
+331
+13A
+331
+150
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+13D
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_SINGLE_BED
+340
+0
+102
+{BLKREFS
+331
+144
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+147
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_DESK
+340
+0
+102
+{BLKREFS
+331
+14D
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+153
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_SOFA_3_SEAT
+340
+0
+102
+{BLKREFS
+331
+15D
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+160
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_COFFEE_TABLE
+340
+0
+102
+{BLKREFS
+331
+165
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+168
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_BOOKSHELF
+340
+0
+102
+{BLKREFS
+331
+16E
+102
+}
  70
      0
 280
@@ -2528,6 +2740,1392 @@ ENDBLK
 AcDbEntity
  67
      1
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+11F
+330
+11E
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_DOUBLE_BED
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_DOUBLE_BED
+  1
+
+  0
+LWPOLYLINE
+  5
+121
+330
+11E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+1600.0
+ 20
+0.0
+ 10
+1600.0
+ 20
+2000.0
+ 10
+0.0
+ 20
+2000.0
+  0
+LWPOLYLINE
+  5
+122
+330
+11E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+100.0
+ 20
+50.0
+ 10
+750.0
+ 20
+50.0
+ 10
+750.0
+ 20
+450.0
+ 10
+100.0
+ 20
+450.0
+  0
+LWPOLYLINE
+  5
+123
+330
+11E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+850.0
+ 20
+50.0
+ 10
+1500.0
+ 20
+50.0
+ 10
+1500.0
+ 20
+450.0
+ 10
+850.0
+ 20
+450.0
+  0
+LINE
+  5
+124
+330
+11E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+0.0
+ 20
+700.0
+ 30
+0.0
+ 11
+1600.0
+ 21
+700.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+125
+330
+11E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+341.6666666666667
+ 20
+950.0
+ 30
+0.0
+ 40
+100.0
+  1
+double_bed
+ 72
+     1
+ 11
+800.0
+ 21
+1000.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+120
+330
+11E
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+12A
+330
+129
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_NIGHTSTAND
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_NIGHTSTAND
+  1
+
+  0
+LWPOLYLINE
+  5
+12C
+330
+129
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+500.0
+ 20
+0.0
+ 10
+500.0
+ 20
+400.0
+ 10
+0.0
+ 20
+400.0
+  0
+ATTDEF
+  5
+12D
+330
+129
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+-199.9999999999999
+ 20
+150.0
+ 30
+0.0
+ 40
+100.0
+  1
+nightstand
+ 72
+     1
+ 11
+250.0
+ 21
+200.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+12B
+330
+129
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+135
+330
+134
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_WARDROBE
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_WARDROBE
+  1
+
+  0
+LWPOLYLINE
+  5
+137
+330
+134
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+1200.0
+ 20
+0.0
+ 10
+1200.0
+ 20
+600.0
+ 10
+0.0
+ 20
+600.0
+  0
+LINE
+  5
+138
+330
+134
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+50.0
+ 20
+300.0
+ 30
+0.0
+ 11
+1150.0
+ 21
+300.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+139
+330
+134
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+216.6666666666668
+ 20
+250.0
+ 30
+0.0
+ 40
+100.0
+  1
+wardrobe
+ 72
+     1
+ 11
+600.0
+ 21
+300.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+136
+330
+134
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+13E
+330
+13D
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_SINGLE_BED
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_SINGLE_BED
+  1
+
+  0
+LWPOLYLINE
+  5
+140
+330
+13D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+900.0
+ 20
+0.0
+ 10
+900.0
+ 20
+2000.0
+ 10
+0.0
+ 20
+2000.0
+  0
+LWPOLYLINE
+  5
+141
+330
+13D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+100.0
+ 20
+50.0
+ 10
+800.0
+ 20
+50.0
+ 10
+800.0
+ 20
+450.0
+ 10
+100.0
+ 20
+450.0
+  0
+LINE
+  5
+142
+330
+13D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+0.0
+ 20
+700.0
+ 30
+0.0
+ 11
+900.0
+ 21
+700.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+143
+330
+13D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+25.00000000000005
+ 20
+950.0
+ 30
+0.0
+ 40
+100.0
+  1
+single_bed
+ 72
+     1
+ 11
+450.0
+ 21
+1000.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+13F
+330
+13D
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+148
+330
+147
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_DESK
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_DESK
+  1
+
+  0
+LWPOLYLINE
+  5
+14A
+330
+147
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+1400.0
+ 20
+0.0
+ 10
+1400.0
+ 20
+700.0
+ 10
+0.0
+ 20
+700.0
+  0
+LINE
+  5
+14B
+330
+147
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+1000.0
+ 20
+0.0
+ 30
+0.0
+ 11
+1000.0
+ 21
+700.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+14C
+330
+147
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+516.6666666666667
+ 20
+300.0
+ 30
+0.0
+ 40
+100.0
+  1
+desk
+ 72
+     1
+ 11
+700.0
+ 21
+350.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+149
+330
+147
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+154
+330
+153
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_SOFA_3_SEAT
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_SOFA_3_SEAT
+  1
+
+  0
+LWPOLYLINE
+  5
+156
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+2200.0
+ 20
+0.0
+ 10
+2200.0
+ 20
+900.0
+ 10
+0.0
+ 20
+900.0
+  0
+LINE
+  5
+157
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+200.0
+ 20
+0.0
+ 30
+0.0
+ 11
+200.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+158
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+2000.0
+ 20
+0.0
+ 30
+0.0
+ 11
+2000.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+159
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+200.0
+ 20
+200.0
+ 30
+0.0
+ 11
+2000.0
+ 21
+200.0
+ 31
+0.0
+  0
+LINE
+  5
+15A
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+800.0
+ 20
+200.0
+ 30
+0.0
+ 11
+800.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+15B
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+1400.0
+ 20
+200.0
+ 30
+0.0
+ 11
+1400.0
+ 21
+900.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+15C
+330
+153
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+566.6666666666665
+ 20
+400.0
+ 30
+0.0
+ 40
+100.0
+  1
+sofa_3_seat
+ 72
+     1
+ 11
+1100.0
+ 21
+450.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+155
+330
+153
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+161
+330
+160
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_COFFEE_TABLE
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_COFFEE_TABLE
+  1
+
+  0
+LWPOLYLINE
+  5
+163
+330
+160
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+1100.0
+ 20
+0.0
+ 10
+1100.0
+ 20
+600.0
+ 10
+0.0
+ 20
+600.0
+  0
+ATTDEF
+  5
+164
+330
+160
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+-8.333333333333261
+ 20
+250.0
+ 30
+0.0
+ 40
+100.0
+  1
+coffee_table
+ 72
+     1
+ 11
+550.0
+ 21
+300.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+162
+330
+160
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+169
+330
+168
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_BOOKSHELF
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_BOOKSHELF
+  1
+
+  0
+LWPOLYLINE
+  5
+16B
+330
+168
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+800.0
+ 20
+0.0
+ 10
+800.0
+ 20
+300.0
+ 10
+0.0
+ 20
+300.0
+  0
+LINE
+  5
+16C
+330
+168
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 11
+800.0
+ 21
+300.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+16D
+330
+168
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+-8.333333333333261
+ 20
+100.0
+ 30
+0.0
+ 40
+100.0
+  1
+bookshelf
+ 72
+     1
+ 11
+400.0
+ 21
+150.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+16A
+330
+168
+100
+AcDbEntity
   8
 0
 100
@@ -7193,6 +8791,814 @@ AcDbText
 100
 AcDbText
   0
+INSERT
+  5
+126
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_DOUBLE_BED
+ 10
+2900.0
+ 20
+3950.0
+ 30
+0.0
+ 50
+180.0
+  0
+ATTRIB
+  5
+128
+330
+126
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+2558.333333333334
+ 20
+3000.0
+ 30
+0.0
+ 40
+100.0
+  1
+double_bed
+ 50
+180.0
+ 72
+     1
+ 11
+2100.0
+ 21
+2950.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+127
+330
+126
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+12E
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_NIGHTSTAND
+ 10
+3450.0
+ 20
+3950.0
+ 30
+0.0
+ 50
+180.0
+  0
+ATTRIB
+  5
+130
+330
+12E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+3650.0
+ 20
+3800.0
+ 30
+0.0
+ 40
+100.0
+  1
+nightstand
+ 50
+180.0
+ 72
+     1
+ 11
+3200.0
+ 21
+3750.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+12F
+330
+12E
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+131
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_NIGHTSTAND
+ 10
+1250.0
+ 20
+3950.0
+ 30
+0.0
+ 50
+180.0
+  0
+ATTRIB
+  5
+133
+330
+131
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+1450.0
+ 20
+3800.0
+ 30
+0.0
+ 40
+100.0
+  1
+nightstand
+ 50
+180.0
+ 72
+     1
+ 11
+1000.0
+ 21
+3750.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+132
+330
+131
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+13A
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_WARDROBE
+ 10
+100.0
+ 20
+3800.0
+ 30
+0.0
+ 50
+270.0
+  0
+ATTRIB
+  5
+13C
+330
+13A
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+350.0
+ 20
+3583.333333333333
+ 30
+0.0
+ 40
+100.0
+  1
+wardrobe
+ 50
+270.0
+ 72
+     1
+ 11
+399.9999999999999
+ 21
+3200.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+13B
+330
+13A
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+144
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_SINGLE_BED
+ 10
+3950.0
+ 20
+6500.0
+ 30
+0.0
+ 50
+90.0
+  0
+ATTRIB
+  5
+146
+330
+144
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+3000.0
+ 20
+6525.0
+ 30
+0.0
+ 40
+100.0
+  1
+single_bed
+ 50
+90.00000000000003
+ 72
+     1
+ 11
+2950.0
+ 21
+6950.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+145
+330
+144
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+14D
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_DESK
+ 10
+100.0
+ 20
+7000.0
+ 30
+0.0
+ 50
+270.0
+  0
+ATTRIB
+  5
+14F
+330
+14D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+399.9999999999999
+ 20
+6483.333333333333
+ 30
+0.0
+ 40
+100.0
+  1
+desk
+ 50
+270.0
+ 72
+     1
+ 11
+449.9999999999998
+ 21
+6300.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+14E
+330
+14D
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+150
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_WARDROBE
+ 10
+200.0
+ 20
+4050.0
+ 30
+0.0
+  0
+ATTRIB
+  5
+152
+330
+150
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+416.6666666666667
+ 20
+4300.0
+ 30
+0.0
+ 40
+100.0
+  1
+wardrobe
+ 72
+     1
+ 11
+800.0
+ 21
+4350.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+151
+330
+150
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+15D
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_SOFA_3_SEAT
+ 10
+4500.0
+ 20
+100.0
+ 30
+0.0
+  0
+ATTRIB
+  5
+15F
+330
+15D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+5066.666666666666
+ 20
+500.0
+ 30
+0.0
+ 40
+100.0
+  1
+sofa_3_seat
+ 72
+     1
+ 11
+5600.0
+ 21
+550.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+15E
+330
+15D
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+165
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_COFFEE_TABLE
+ 10
+5050.0
+ 20
+1400.0
+ 30
+0.0
+  0
+ATTRIB
+  5
+167
+330
+165
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+5041.666666666667
+ 20
+1650.0
+ 30
+0.0
+ 40
+100.0
+  1
+coffee_table
+ 72
+     1
+ 11
+5600.0
+ 21
+1700.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+166
+330
+165
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+16E
+330
+70
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_BOOKSHELF
+ 10
+4050.0
+ 20
+4500.0
+ 30
+0.0
+ 50
+270.0
+  0
+ATTRIB
+  5
+170
+330
+16E
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+4150.0
+ 20
+4508.333333333332
+ 30
+0.0
+ 40
+100.0
+  1
+bookshelf
+ 50
+270.0
+ 72
+     1
+ 11
+4200.0
+ 21
+4100.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+16F
+330
+16E
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
 ENDSEC
   0
 SECTION
@@ -7267,7 +9673,7 @@ ACAD_VISUALSTYLE
   3
 ACDB_RECOMPOSE_DATA
 350
-119
+173
   3
 AcDbVariableDictionary
 350
@@ -7721,7 +10127,7 @@ X-Ray
   0
 XRECORD
   5
-119
+173
 102
 {ACAD_REACTORS
 330
@@ -7781,7 +10187,7 @@ ACDBDETAILVIEWSTYLE
 102
 {ACAD_XDICTIONARY
 360
-11C
+176
 102
 }
 102
@@ -9505,7 +11911,7 @@ ACDBSECTIONVIEWSTYLE
 102
 {ACAD_XDICTIONARY
 360
-11A
+174
 102
 }
 102
@@ -9631,7 +12037,7 @@ TABLESTYLE
 102
 {ACAD_XDICTIONARY
 360
-117
+171
 102
 }
 102
@@ -16351,7 +18757,7 @@ Imperial24
   0
 DICTIONARY
   5
-11C
+176
 330
 6B
 100
@@ -16363,7 +18769,7 @@ AcDbDictionary
   3
 ACAD_XREC_ROUNDTRIP
 360
-11D
+177
   0
 DICTIONARY
   5
@@ -16475,7 +18881,7 @@ SPECULARTILE
   0
 DICTIONARY
   5
-11A
+174
 330
 69
 100
@@ -16487,11 +18893,11 @@ AcDbDictionary
   3
 ACAD_XREC_ROUNDTRIP
 360
-11B
+175
   0
 DICTIONARY
   5
-117
+171
 330
 65
 100
@@ -16503,19 +18909,19 @@ AcDbDictionary
   3
 ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP
 360
-118
+172
   0
 XRECORD
   5
-11D
+177
 102
 {ACAD_REACTORS
 330
-11C
+176
 102
 }
 330
-11C
+176
 100
 AcDbXrecord
 280
@@ -16891,15 +19297,15 @@ AcDbXrecord
   0
 XRECORD
   5
-11B
+175
 102
 {ACAD_REACTORS
 330
-11A
+174
 102
 }
 330
-11A
+174
 100
 AcDbXrecord
 280
@@ -16915,15 +19321,15 @@ FLAGS
   0
 CELLSTYLEMAP
   5
-118
+172
 102
 {ACAD_REACTORS
 330
-117
+171
 102
 }
 330
-117
+171
 100
 AcDbCellStyleMap
  90

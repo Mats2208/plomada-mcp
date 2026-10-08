@@ -23,7 +23,7 @@ from .config import BridgeConfig, load_config
 from .connection import SketchUpClient
 from .dxf import DxfPlanError, read_plan
 from .errors import NOT_RESPONDING, BridgeError, NotResponding, describe
-from .models import Opening, Plan, Room, Stair, Wall, describe_error
+from .models import Furniture, Opening, Plan, Room, Stair, Wall, describe_error
 
 INSTRUCTIONS = """\
 Plomada models architecture inside a running SketchUp 2025 (Windows) from plans drawn by
@@ -86,6 +86,9 @@ class PlanInput(BaseModel):
     rooms: Annotated[list[Room], Field(default_factory=list, description="room records")]
     stairs: Annotated[
         list[Stair], Field(default_factory=list, description="stair records: from this storey up to the next")
+    ]
+    furniture: Annotated[
+        list[Furniture], Field(default_factory=list, description="catalogue pieces: item, back-left corner, rotation")
     ]
 
 
@@ -481,6 +484,19 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         ridge along the longer side, or a hip roof with one slope per eave (ridges, hips and valleys)."""
         params = {"kind": kind, "overhang": overhang, "thickness": thickness, "pitch": pitch}
         return await b.mutate("add_roof", "add_roof", with_storey(params, storey), ctx)
+
+    @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
+    async def add_terrain(
+        ctx: Context,
+        margin: Annotated[float, Field(gt=0, le=200_000, description="mm of ground around the buildings")] = 6000.0,
+        thickness: Annotated[float, Field(gt=0, le=5_000, description="mm, terrain slab")] = 200.0,
+        material: Annotated[str, Field(min_length=1, description="a Plomada material")] = "MAT_cesped",
+    ) -> dict[str, Any]:
+        """Builds (or replaces) the ground, Terreno on tag Entorno: a lawn slab around everything Plomada
+        built, its top at the underside of the ground-floor slab, with a hole under each building."""
+        params = {"margin": margin, "thickness": thickness, "material": material}
+        return await b.mutate("add_terrain", "add_terrain", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
     @exact_errors

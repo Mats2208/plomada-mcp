@@ -99,6 +99,16 @@ class Stair(_Record):
     turn: Literal["left", "right"] = "left"
 
 
+class Furniture(_Record):
+    """A catalogue block placed in the plan (AutoCAD MCP Pro arch_catalogue_insert): at is the
+    back-left corner, rotation degrees CCW about it."""
+
+    id: Annotated[str, Field(min_length=1, description="the INSERT handle")]
+    item: Annotated[str, Field(min_length=1, description="catalogue name, e.g. double_bed, wc")]
+    at: Point
+    rotation: Annotated[float, Field(allow_inf_nan=False, description="degrees CCW")] = 0.0
+
+
 class Storey(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -113,6 +123,7 @@ class Plan(BaseModel):
     openings: list[Opening] = Field(default_factory=list)
     rooms: list[Room] = Field(default_factory=list)
     stairs: list[Stair] = Field(default_factory=list)
+    furniture: list[Furniture] = Field(default_factory=list)
     storey: Storey | None = None
 
     @model_validator(mode="after")
@@ -121,6 +132,7 @@ class Plan(BaseModel):
         _unique("openings", [o.id for o in self.openings])
         _unique("rooms", [r.id for r in self.rooms])
         _unique("stairs", [s.id for s in self.stairs])
+        _unique("furniture", [f.id for f in self.furniture])
         ids = {w.id for w in self.walls}
         for i, o in enumerate(self.openings):
             if o.wall not in ids:
@@ -141,6 +153,9 @@ class Plan(BaseModel):
             ],
             "rooms": [{"v": 1, "kind": "room", **r.model_dump(mode="json", exclude={"v"})} for r in self.rooms],
             "stairs": [{"v": 1, "kind": "stair", **s.model_dump(mode="json", exclude={"v"})} for s in self.stairs],
+            "furniture": [
+                {"v": 1, "kind": "furniture", **f.model_dump(mode="json", exclude={"v"})} for f in self.furniture
+            ],
         }
         if self.storey is not None:
             out["storey"] = self.storey.model_dump()

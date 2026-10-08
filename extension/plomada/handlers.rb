@@ -41,6 +41,7 @@ module Plomada
       r.job('set_wall_height') { |p, ctx| SU::Edit.set_wall_height(p, ctx) }
       r.job('add_slab') { |p, ctx| SU::Edit.add_slab(p, ctx) }
       r.job('add_roof') { |p, ctx| SU::Edit.add_roof(p, ctx) }
+      r.job('add_terrain') { |p, ctx| SU::Edit.add_terrain(p, ctx) }
       r.job('set_material') { |p, ctx| SU::Edit.set_material(p, ctx) }
       r.job('create_scene') { |p, ctx| SU::Scenes.create(p, ctx) }
       r.job('auto_scenes') { |p, ctx| SU::Scenes.auto(p, ctx) }

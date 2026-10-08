@@ -307,8 +307,12 @@ module Plomada
             edges = Geometry.wall_body_edges(plan['walls']) +
                     Geometry.ring_edges(stairs + Storeys.wells(model, elevation, storey))
             axis = Geometry.dominant_axis(plan['walls'])
+            pieces = plan['furniture'].select { |f| Geometry.furniture_item?(f['item']) }
+                                      .map { |f| Geometry.furniture_footprint(f['item'], f['at'], f['rotation']) }
             plan['rooms'].each do |room|
-              cam = Geometry.room_camera(room['at'], edges, axis)
+              # Furniture is in the way too, except a piece the room point itself falls on.
+              around = pieces.reject { |fp| Geometry.point_in_polygon?(room['at'], fp) }
+              cam = Geometry.room_camera(room['at'], edges + Geometry.ring_edges(around), axis)
               next skipped << "#{storey}/#{room['id']}" unless cam
 
               z = elevation + eye_h
@@ -321,7 +325,9 @@ module Plomada
         if exterior
           points = []
           SU.plomada_entities(model).each do |e|
-            world_points(e.entities, e.transformation, points) if e.is_a?(Sketchup::Group) && SU.kind(e) != 'room'
+            next unless e.is_a?(Sketchup::Group) && !%w[room terrain].include?(SU.kind(e))
+
+            world_points(e.entities, e.transformation, points)
           end
           Geometry.exterior_cameras(points.uniq, eye_h, fov_out).each do |c|
             cams << c.merge(fov: fov_out, view: 'exterior')

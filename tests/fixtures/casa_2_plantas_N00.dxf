@@ -509,11 +509,11 @@ $TDUUPDATE
   9
 $TDINDWG
  40
-0.0123495370
+0.0127199074
   9
 $TDUSRTIMER
  40
-0.0123495370
+0.0127199074
   9
 $USRTIMER
  70
@@ -553,7 +553,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-2FD
+354
   9
 $SURFTAB1
  70
@@ -1247,7 +1247,7 @@ ObjectDBX Classes
  90
      1152
  91
-        1
+        2
 280
      0
 281
@@ -1439,7 +1439,7 @@ AcDbViewportTableRecord
  37
 0.0
  40
-11000.0
+10000.0
  41
 2.180650684931507
  42
@@ -2523,7 +2523,7 @@ BLOCK_RECORD
 100
 AcDbSymbolTable
  70
-     1
+     7
   0
 BLOCK_RECORD
   5
@@ -2584,6 +2584,162 @@ AcDbBlockTableRecord
 *Paper_Space0
 340
 5E
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+302
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_SOFA_3_SEAT
+340
+0
+102
+{BLKREFS
+331
+30C
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+30F
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_COFFEE_TABLE
+340
+0
+102
+{BLKREFS
+331
+314
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+317
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_ARMCHAIR
+340
+0
+102
+{BLKREFS
+331
+31F
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+322
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_DINING_TABLE_4
+340
+0
+102
+{BLKREFS
+331
+32F
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+332
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_KITCHEN_COUNTER
+340
+0
+102
+{BLKREFS
+331
+33A
+102
+}
+ 70
+     0
+280
+     1
+281
+     0
+  0
+BLOCK_RECORD
+  5
+33D
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+ARCH_FRIDGE
+340
+0
+102
+{BLKREFS
+331
+343
+102
+}
  70
      0
 280
@@ -2716,6 +2872,1350 @@ ENDBLK
 AcDbEntity
  67
      1
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+303
+330
+302
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_SOFA_3_SEAT
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_SOFA_3_SEAT
+  1
+
+  0
+LWPOLYLINE
+  5
+305
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+2200.0
+ 20
+0.0
+ 10
+2200.0
+ 20
+900.0
+ 10
+0.0
+ 20
+900.0
+  0
+LINE
+  5
+306
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+200.0
+ 20
+0.0
+ 30
+0.0
+ 11
+200.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+307
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+2000.0
+ 20
+0.0
+ 30
+0.0
+ 11
+2000.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+308
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+200.0
+ 20
+200.0
+ 30
+0.0
+ 11
+2000.0
+ 21
+200.0
+ 31
+0.0
+  0
+LINE
+  5
+309
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+800.0
+ 20
+200.0
+ 30
+0.0
+ 11
+800.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+30A
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+1400.0
+ 20
+200.0
+ 30
+0.0
+ 11
+1400.0
+ 21
+900.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+30B
+330
+302
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+719.406548431105
+ 20
+400.0
+ 30
+0.0
+ 40
+100.0
+  1
+sofa_3_seat
+ 72
+     1
+ 11
+1100.0
+ 21
+450.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+304
+330
+302
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+310
+330
+30F
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_COFFEE_TABLE
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_COFFEE_TABLE
+  1
+
+  0
+LWPOLYLINE
+  5
+312
+330
+30F
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+1100.0
+ 20
+0.0
+ 10
+1100.0
+ 20
+600.0
+ 10
+0.0
+ 20
+600.0
+  0
+ATTDEF
+  5
+313
+330
+30F
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+169.406548431105
+ 20
+250.0
+ 30
+0.0
+ 40
+100.0
+  1
+coffee_table
+ 72
+     1
+ 11
+550.0
+ 21
+300.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+311
+330
+30F
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+318
+330
+317
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_ARMCHAIR
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_ARMCHAIR
+  1
+
+  0
+LWPOLYLINE
+  5
+31A
+330
+317
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+900.0
+ 20
+0.0
+ 10
+900.0
+ 20
+900.0
+ 10
+0.0
+ 20
+900.0
+  0
+LINE
+  5
+31B
+330
+317
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+150.0
+ 20
+0.0
+ 30
+0.0
+ 11
+150.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+31C
+330
+317
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+750.0
+ 20
+0.0
+ 30
+0.0
+ 11
+750.0
+ 21
+900.0
+ 31
+0.0
+  0
+LINE
+  5
+31D
+330
+317
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+150.0
+ 20
+200.0
+ 30
+0.0
+ 11
+750.0
+ 21
+200.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+31E
+330
+317
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+177.3533424283765
+ 20
+400.0
+ 30
+0.0
+ 40
+100.0
+  1
+armchair
+ 72
+     1
+ 11
+450.0
+ 21
+450.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+319
+330
+317
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+323
+330
+322
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_DINING_TABLE_4
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_DINING_TABLE_4
+  1
+
+  0
+LWPOLYLINE
+  5
+325
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+450.0
+ 10
+1400.0
+ 20
+450.0
+ 10
+1400.0
+ 20
+1250.0
+ 10
+0.0
+ 20
+1250.0
+  0
+LWPOLYLINE
+  5
+326
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+125.0
+ 20
+0.0
+ 10
+575.0
+ 20
+0.0
+ 10
+575.0
+ 20
+450.0
+ 10
+125.0
+ 20
+450.0
+  0
+LINE
+  5
+327
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+125.0
+ 20
+60.0
+ 30
+0.0
+ 11
+575.0
+ 21
+60.0
+ 31
+0.0
+  0
+LWPOLYLINE
+  5
+328
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+825.0
+ 20
+0.0
+ 10
+1275.0
+ 20
+0.0
+ 10
+1275.0
+ 20
+450.0
+ 10
+825.0
+ 20
+450.0
+  0
+LINE
+  5
+329
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+825.0
+ 20
+60.0
+ 30
+0.0
+ 11
+1275.0
+ 21
+60.0
+ 31
+0.0
+  0
+LWPOLYLINE
+  5
+32A
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+125.0
+ 20
+1250.0
+ 10
+575.0
+ 20
+1250.0
+ 10
+575.0
+ 20
+1700.0
+ 10
+125.0
+ 20
+1700.0
+  0
+LINE
+  5
+32B
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+125.0
+ 20
+1640.0
+ 30
+0.0
+ 11
+575.0
+ 21
+1640.0
+ 31
+0.0
+  0
+LWPOLYLINE
+  5
+32C
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+825.0
+ 20
+1250.0
+ 10
+1275.0
+ 20
+1250.0
+ 10
+1275.0
+ 20
+1700.0
+ 10
+825.0
+ 20
+1700.0
+  0
+LINE
+  5
+32D
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+825.0
+ 20
+1640.0
+ 30
+0.0
+ 11
+1275.0
+ 21
+1640.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+32E
+330
+322
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+245.5661664392906
+ 20
+800.0
+ 30
+0.0
+ 40
+100.0
+  1
+dining_table_4
+ 72
+     1
+ 11
+700.0
+ 21
+850.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+324
+330
+322
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+333
+330
+332
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_KITCHEN_COUNTER
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_KITCHEN_COUNTER
+  1
+
+  0
+LWPOLYLINE
+  5
+335
+330
+332
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+2400.0
+ 20
+0.0
+ 10
+2400.0
+ 20
+600.0
+ 10
+0.0
+ 20
+600.0
+  0
+LINE
+  5
+336
+330
+332
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+600.0
+ 20
+0.0
+ 30
+0.0
+ 11
+600.0
+ 21
+600.0
+ 31
+0.0
+  0
+LINE
+  5
+337
+330
+332
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+1200.0
+ 20
+0.0
+ 30
+0.0
+ 11
+1200.0
+ 21
+600.0
+ 31
+0.0
+  0
+LINE
+  5
+338
+330
+332
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+1800.0
+ 20
+0.0
+ 30
+0.0
+ 11
+1800.0
+ 21
+600.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+339
+330
+332
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+705.900409276944
+ 20
+250.0
+ 30
+0.0
+ 40
+100.0
+  1
+kitchen_counter
+ 72
+     1
+ 11
+1200.0
+ 21
+300.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+334
+330
+332
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+33E
+330
+33D
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+ARCH_FRIDGE
+ 70
+     2
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+ARCH_FRIDGE
+  1
+
+  0
+LWPOLYLINE
+  5
+340
+330
+33D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbPolyline
+ 90
+        4
+ 70
+     1
+ 43
+0.0
+ 10
+0.0
+ 20
+0.0
+ 10
+600.0
+ 20
+0.0
+ 10
+600.0
+ 20
+650.0
+ 10
+0.0
+ 20
+650.0
+  0
+LINE
+  5
+341
+330
+33D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbLine
+ 10
+0.0
+ 20
+600.0
+ 30
+0.0
+ 11
+600.0
+ 21
+600.0
+ 31
+0.0
+  0
+ATTDEF
+  5
+342
+330
+33D
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+125.2728512960436
+ 20
+275.0
+ 30
+0.0
+ 40
+100.0
+  1
+fridge
+ 72
+     1
+ 11
+300.0
+ 21
+325.0
+ 31
+0.0
+100
+AcDbAttributeDefinition
+280
+     0
+  3
+Catalogue item
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+ENDBLK
+  5
+33F
+330
+33D
+100
+AcDbEntity
   8
 0
 100
@@ -5303,13 +6803,13 @@ AcDbLine
  10
 3500.0
  20
-7966.666666666667
+7966.666666666668
  30
 0.0
  11
 1500.0
  21
-7966.666666666667
+7966.666666666668
  31
 0.0
   0
@@ -6679,6 +8179,494 @@ AcDbText
 100
 AcDbText
   0
+INSERT
+  5
+30C
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_SOFA_3_SEAT
+ 10
+100.0
+ 20
+5000.0
+ 30
+0.0
+ 50
+270.0
+  0
+ATTRIB
+  5
+30E
+330
+30C
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+499.9999999999999
+ 20
+4280.593451568895
+ 30
+0.0
+ 40
+100.0
+  1
+sofa_3_seat
+ 50
+270.0
+ 72
+     1
+ 11
+549.9999999999998
+ 21
+3900.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+30D
+330
+30C
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+314
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_COFFEE_TABLE
+ 10
+1300.0
+ 20
+4450.0
+ 30
+0.0
+ 50
+270.0
+  0
+ATTRIB
+  5
+316
+330
+314
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+1550.0
+ 20
+4280.593451568895
+ 30
+0.0
+ 40
+100.0
+  1
+coffee_table
+ 50
+270.0
+ 72
+     1
+ 11
+1600.0
+ 21
+3900.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+315
+330
+314
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+31F
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_ARMCHAIR
+ 10
+2700.0
+ 20
+2200.0
+ 30
+0.0
+ 50
+90.0
+  0
+ATTRIB
+  5
+321
+330
+31F
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+2300.0
+ 20
+2377.353342428377
+ 30
+0.0
+ 40
+100.0
+  1
+armchair
+ 50
+90.00000000000003
+ 72
+     1
+ 11
+2250.0
+ 21
+2650.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+320
+330
+31F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+32F
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_DINING_TABLE_4
+ 10
+1300.0
+ 20
+5800.0
+ 30
+0.0
+  0
+ATTRIB
+  5
+331
+330
+32F
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+1545.56616643929
+ 20
+6600.0
+ 30
+0.0
+ 40
+100.0
+  1
+dining_table_4
+ 72
+     1
+ 11
+2000.0
+ 21
+6650.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+330
+330
+32F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+33A
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_KITCHEN_COUNTER
+ 10
+9900.0
+ 20
+300.0
+ 30
+0.0
+ 50
+90.0
+  0
+ATTRIB
+  5
+33C
+330
+33A
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+9650.0
+ 20
+1005.900409276944
+ 30
+0.0
+ 40
+100.0
+  1
+kitchen_counter
+ 50
+90.00000000000003
+ 72
+     1
+ 11
+9600.0
+ 21
+1500.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+33B
+330
+33A
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
+INSERT
+  5
+343
+330
+1F
+100
+AcDbEntity
+  8
+A-FURN-E-N
+100
+AcDbBlockReference
+ 66
+     1
+  2
+ARCH_FRIDGE
+ 10
+9900.0
+ 20
+2750.0
+ 30
+0.0
+ 50
+90.0
+  0
+ATTRIB
+  5
+345
+330
+343
+100
+AcDbEntity
+  8
+0
+  6
+ByBlock
+ 62
+     0
+100
+AcDbText
+ 10
+9625.0
+ 20
+2875.272851296044
+ 30
+0.0
+ 40
+100.0
+  1
+fridge
+ 50
+90.00000000000003
+ 72
+     1
+ 11
+9575.0
+ 21
+3050.0
+ 31
+0.0
+100
+AcDbAttribute
+280
+     0
+  2
+ITEM
+ 70
+     1
+ 74
+     2
+280
+     0
+  0
+SEQEND
+  5
+344
+330
+343
+100
+AcDbEntity
+  8
+A-FURN-E-N
+  0
 ENDSEC
   0
 SECTION
@@ -6753,7 +8741,7 @@ ACAD_VISUALSTYLE
   3
 ACDB_RECOMPOSE_DATA
 350
-2F0
+347
   3
 AcDbVariableDictionary
 350
@@ -6761,7 +8749,7 @@ AcDbVariableDictionary
   3
 AcDsDecomposeData
 350
-2F6
+34D
   0
 DICTIONARY
   5
@@ -7319,7 +9307,7 @@ X-Ray
   0
 XRECORD
   5
-2F0
+347
 102
 {ACAD_REACTORS
 330
@@ -7391,7 +9379,7 @@ LAYERNOTIFY
   0
 DICTIONARY
   5
-2F6
+34D
 102
 {ACAD_REACTORS
 330
@@ -7407,11 +9395,11 @@ AcDbDictionary
   3
 AcDsRecords
 350
-2F8
+34F
   3
 AcDsSchemas
 350
-2F7
+34E
 1001
 ACAD
 1070
@@ -7439,7 +9427,7 @@ ACDBDETAILVIEWSTYLE
 102
 {ACAD_XDICTIONARY
 360
-2FB
+352
 102
 }
 102
@@ -7819,7 +9807,7 @@ ANSI_A_(8.50_x_11.00_Inches)
   6
 
  40
-6.349999904632568
+6.349999904632567
  41
 19.04999923706055
  42
@@ -9199,7 +11187,7 @@ ACDBSECTIONVIEWSTYLE
 102
 {ACAD_XDICTIONARY
 360
-2F9
+350
 102
 }
 102
@@ -9317,7 +11305,7 @@ ANSI31
  40
 -0.2617993877991494
  40
-1.832595714594046
+1.832595714594045
   0
 TABLESTYLE
   5
@@ -9708,8 +11696,6 @@ AcDbVisualStyle
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -9976,8 +11962,6 @@ Basic
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -10244,8 +12228,6 @@ Brighten
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -10514,8 +12496,6 @@ ColorChange
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -10782,8 +12762,6 @@ Conceptual
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -11050,8 +13028,6 @@ Dim
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -11318,8 +13294,6 @@ EdgeColorOff
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -11586,8 +13560,6 @@ Facepattern
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -11854,8 +13826,6 @@ Flat
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -12122,8 +14092,6 @@ FlatWithEdges
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -12390,8 +14358,6 @@ Gouraud
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -12658,8 +14624,6 @@ GouraudWithEdges
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -12926,8 +14890,6 @@ Hidden
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -13194,8 +15156,6 @@ JitterOff
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -13462,8 +15422,6 @@ Linepattern
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -13730,8 +15688,6 @@ OverhangOff
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -13998,8 +15954,6 @@ Realistic
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -14268,8 +16222,6 @@ Shaded
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -14536,8 +16488,6 @@ Shaded with edges
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -14804,8 +16754,6 @@ Shades of Gray
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -15072,8 +17020,6 @@ Sketchy
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -15340,8 +17286,6 @@ Thicken
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -15608,8 +17552,6 @@ Wireframe
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -15876,8 +17818,6 @@ X-Ray
      1
  62
     18
-420
-        0
 176
      1
  90
@@ -16117,15 +18057,15 @@ DictionaryVariables
   0
 DICTIONARY
   5
-2F8
+34F
 102
 {ACAD_REACTORS
 330
-2F6
+34D
 102
 }
 330
-2F6
+34D
 100
 AcDbDictionary
 281
@@ -16133,43 +18073,43 @@ AcDbDictionary
   0
 DICTIONARY
   5
-2F7
+34E
 102
 {ACAD_REACTORS
 330
-2F6
+34D
 102
 }
 330
-2F6
+34D
 100
 AcDbDictionary
 281
      1
   3
-3162363031056
+3162244168704
 350
-2F1
+348
   3
-3162363031072
+3162244168720
 350
-2F2
+349
   3
-3162363031088
+3162244168736
 350
-2F3
+34A
   3
-3162363031104
+3162244168752
 350
-2F4
+34B
   3
-3162363031120
+3162244168768
 350
-2F5
+34C
   0
 DICTIONARY
   5
-2FB
+352
 330
 1AC
 100
@@ -16181,7 +18121,7 @@ AcDbDictionary
   3
 ACAD_XREC_ROUNDTRIP
 360
-2FC
+353
   0
 DICTIONARY
   5
@@ -16261,7 +18201,7 @@ REFLECTIONTILE
   0
 DICTIONARY
   5
-2F9
+350
 330
 1AA
 100
@@ -16273,7 +18213,7 @@ AcDbDictionary
   3
 ACAD_XREC_ROUNDTRIP
 360
-2FA
+351
   0
 DICTIONARY
   5
@@ -16289,19 +18229,19 @@ AcDbDictionary
   3
 ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP
 360
-2EF
+346
   0
 XRECORD
   5
-2F1
+348
 102
 {ACAD_REACTORS
 330
-2F7
+34E
 102
 }
 330
-2F7
+34E
 100
 AcDbXrecord
 280
@@ -16311,7 +18251,7 @@ AcDb_Thumbnail_Schema
 102
 {ATTRRECORD
 341
-2F2
+349
   2
 AcDbDs::TreatedAsObjectData
 280
@@ -16323,7 +18263,7 @@ ATTRRECORD}
 102
 {ATTRRECORD
 341
-2F3
+34A
   2
 AcDbDs::Legacy
 280
@@ -16341,7 +18281,7 @@ AcDbDs::ID
 102
 {ATTRRECORD
 341
-2F4
+34B
   2
 AcDs:Indexable
 280
@@ -16353,7 +18293,7 @@ ATTRRECORD}
 102
 {ATTRRECORD
 341
-2F5
+34C
   2
 AcDbDs::HandleAttribute
 280
@@ -16371,15 +18311,15 @@ Thumbnail_Data
   0
 XRECORD
   5
-2F2
+349
 102
 {ACAD_REACTORS
 330
-2F7
+34E
 102
 }
 330
-2F7
+34E
 100
 AcDbXrecord
 280
@@ -16395,15 +18335,15 @@ AcDbDs::TreatedAsObjectData
   0
 XRECORD
   5
-2F3
+34A
 102
 {ACAD_REACTORS
 330
-2F7
+34E
 102
 }
 330
-2F7
+34E
 100
 AcDbXrecord
 280
@@ -16419,15 +18359,15 @@ AcDbDs::Legacy
   0
 XRECORD
   5
-2F4
+34B
 102
 {ACAD_REACTORS
 330
-2F7
+34E
 102
 }
 330
-2F7
+34E
 100
 AcDbXrecord
 280
@@ -16443,15 +18383,15 @@ AcDs:Indexable
   0
 XRECORD
   5
-2F5
+34C
 102
 {ACAD_REACTORS
 330
-2F7
+34E
 102
 }
 330
-2F7
+34E
 100
 AcDbXrecord
 280
@@ -16469,15 +18409,15 @@ AcDbDs::HandleAttribute
   0
 XRECORD
   5
-2FC
+353
 102
 {ACAD_REACTORS
 330
-2FB
+352
 102
 }
 330
-2FB
+352
 100
 AcDbXrecord
 280
@@ -16909,15 +18849,15 @@ AcDbXrecord
   0
 XRECORD
   5
-2FA
+351
 102
 {ACAD_REACTORS
 330
-2F9
+350
 102
 }
 330
-2F9
+350
 100
 AcDbXrecord
 280
@@ -16933,7 +18873,7 @@ FLAGS
   0
 CELLSTYLEMAP
   5
-2EF
+346
 102
 {ACAD_REACTORS
 330

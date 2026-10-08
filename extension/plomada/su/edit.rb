@@ -220,6 +220,46 @@ module Plomada
         end
       end
 
+      # A lawn around the buildings: the plan box of everything Plomada built
+      # grown by +margin+, its top at the underside of the lowest storey's slab,
+      # holes under the outer faces of that storey's buildings. Replaces the
+      # previous terrain.
+      def add_terrain(params, ctx)
+        model = ctx.model
+        margin = params['margin'].nil? ? CONFIG[:terrain_margin_mm] : Plan.positive(params['margin'], 'margin')
+        thickness = params['thickness'].nil? ? CONFIG[:terrain_thickness_mm] : Plan.positive(params['thickness'], 'thickness')
+        material = params['material'].nil? ? 'MAT_cesped' : Plan.text(params['material'], 'material')
+        unless CONFIG[:materials].key?(material)
+          raise InvalidParams, "material #{material.inspect} is not a Plomada material; use one of #{CONFIG[:materials].keys.join(', ')}"
+        end
+
+        lowest = Storeys.list(model).first
+        raise InvalidParams, 'no Plomada walls in this model; build a house before add_terrain' unless lowest
+
+        settings = PlanReader.storey_settings(model, lowest['name'])
+        plan = Plan.normalize(current_plan(model, lowest['name']).merge('storey' => nil))
+        layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: settings['height'].to_f)
+        holes = (layout[:exteriors] || []).map { |o| o[:points] }
+        top = lowest['elevation'] - (settings['slab'] == false ? 0.0 : settings.fetch('slab_thickness', CONFIG[:slab_thickness_mm]).to_f)
+        bb = Geom::BoundingBox.new
+        SU.plomada_entities(model).each { |e| bb.add(e.bounds) unless %w[terrain room].include?(SU.kind(e)) }
+        lo = SU.to_mm(bb.min)
+        hi = SU.to_mm(bb.max)
+        outer = [[lo[0] - margin, lo[1] - margin], [hi[0] + margin, lo[1] - margin],
+                 [hi[0] + margin, hi[1] + margin], [lo[0] - margin, hi[1] + margin]]
+        old = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.kind(g) == 'terrain' }
+        units = [['terrain', lambda {
+          SU.ensure_materials(model)
+          SU.ensure_tags(model)
+          model.entities.erase_entities(old.select(&:valid?)) unless old.empty?
+          Terrain.build(model, outer, holes, top, thickness, material)
+        }]]
+        UnitJob.new('Plomada: add terrain', units) do
+          { 'group' => 'Terreno', 'material' => material, 'top_mm' => top, 'holes' => holes.size,
+            'size_mm' => [(hi[0] - lo[0] + (2 * margin)).round(1), (hi[1] - lo[1] + (2 * margin)).round(1)] }
+        end
+      end
+
       def exterior(model, settings, storey)
         raw = current_plan(model, storey).merge('storey' => { 'name' => storey, 'height' => settings['height'] })
         plan = Plan.normalize(raw)

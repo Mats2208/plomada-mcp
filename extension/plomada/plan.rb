@@ -38,7 +38,10 @@ module Plomada
       unique!(rooms, 'rooms')
       stairs = list(raw, 'stairs').each_with_index.map { |st, i| stair(st, "stairs[#{i}]") }
       unique!(stairs, 'stairs')
-      { 'walls' => walls, 'openings' => openings, 'rooms' => rooms, 'stairs' => stairs, 'storey' => storey }
+      furniture = list(raw, 'furniture').each_with_index.map { |f, i| furniture(f, "furniture[#{i}]") }
+      unique!(furniture, 'furniture')
+      { 'walls' => walls, 'openings' => openings, 'rooms' => rooms, 'stairs' => stairs, 'furniture' => furniture,
+        'storey' => storey }
     end
 
     def normalize_storey(raw, config)
@@ -158,6 +161,20 @@ module Plomada
         'kind' => choice(raw['stair_kind'] || (STAIR_KINDS.include?(raw['kind']) ? raw['kind'] : 'straight'),
                          "#{path}.stair_kind", STAIR_KINDS),
         'turn' => choice(raw.fetch('turn', 'left'), "#{path}.turn", TURNS)
+      }
+    end
+
+    # A catalogue block placed in the plan (AutoCAD MCP Pro arch_catalogue_insert):
+    # item is the catalogue name, at the back-left corner, rotation degrees CCW.
+    # An item Plomada has no massing for is kept here and skipped by the build.
+    def furniture(raw, path)
+      object!(raw, path)
+      version!(raw, path)
+      {
+        'id' => text(raw['id'], "#{path}.id"),
+        'item' => text(raw['item'], "#{path}.item"),
+        'at' => point(raw['at'], "#{path}.at"),
+        'rotation' => raw['rotation'].nil? ? 0.0 : number(raw['rotation'], "#{path}.rotation")
       }
     end
 

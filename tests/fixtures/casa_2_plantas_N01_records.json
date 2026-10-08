@@ -211,5 +211,115 @@
   "name": "Hall",
   "number": "13",
   "v": 1
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "126",
+  "item": "double_bed",
+  "at": [
+   2900.0,
+   3950.0
+  ],
+  "rotation": 180.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "12E",
+  "item": "nightstand",
+  "at": [
+   3450.0,
+   3950.0
+  ],
+  "rotation": 180.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "131",
+  "item": "nightstand",
+  "at": [
+   1250.0,
+   3950.0
+  ],
+  "rotation": 180.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "13A",
+  "item": "wardrobe",
+  "at": [
+   100.0,
+   3800.0
+  ],
+  "rotation": 270.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "144",
+  "item": "single_bed",
+  "at": [
+   3950.0,
+   6500.0
+  ],
+  "rotation": 90.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "14D",
+  "item": "desk",
+  "at": [
+   100.0,
+   7000.0
+  ],
+  "rotation": 270.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "150",
+  "item": "wardrobe",
+  "at": [
+   200.0,
+   4050.0
+  ],
+  "rotation": 0.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "15D",
+  "item": "sofa_3_seat",
+  "at": [
+   4500.0,
+   100.0
+  ],
+  "rotation": 0.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "165",
+  "item": "coffee_table",
+  "at": [
+   5050.0,
+   1400.0
+  ],
+  "rotation": 0.0
+ },
+ {
+  "v": 1,
+  "kind": "furniture",
+  "id": "16E",
+  "item": "bookshelf",
+  "at": [
+   4050.0,
+   4500.0
+  ],
+  "rotation": 270.0
  }
 ]

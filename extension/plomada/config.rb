@@ -83,7 +83,9 @@ module Plomada
       'MAT_vidrio' => [[165, 195, 210], 0.35],
       'MAT_metal' => [[38, 38, 40], 1.0],
       'MAT_piso_porcelanato' => [[208, 203, 195], 1.0],
-      'MAT_cesped' => [[92, 138, 68], 1.0]
+      'MAT_cesped' => [[92, 138, 68], 1.0],
+      'MAT_mobiliario' => [[196, 186, 170], 1.0],
+      'MAT_sanitario' => [[248, 248, 246], 1.0]
     },
     pbr: {                                 # applied only when the PBR API exists
       'MAT_metal' => { metallic: 1.0 },    # metallic factor, 0-1
@@ -101,6 +103,8 @@ module Plomada
     captures_kept: 20,                     # capture files kept in %TEMP%
     eye_height_mm: 1600.0,                 # mm, scene camera eye height
     scene_fov_deg: 35.0,                   # degrees, scene camera field of view
+    terrain_margin_mm: 6000.0,             # mm of lawn around the buildings (add_terrain)
+    terrain_thickness_mm: 200.0,           # mm, terrain slab under the ground line
     interior_fov_deg: 60.0,                # degrees (vertical), auto_scenes room cameras
     exterior_fov_deg: 40.0,                # degrees (vertical), auto_scenes eye-level exteriors
     export_width: 2048,                    # px, export_scene_images default

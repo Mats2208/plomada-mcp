@@ -21,6 +21,7 @@ from ezdxf.document import Drawing
 from .models import RECORD_VERSION, Plan, parse_plan
 
 APP_ID = "ACADMCP_ARCH"
+BLOCK_PREFIX = "ARCH_"  # AutoCAD MCP Pro catalogue blocks: ARCH_<NAME>
 KINDS = ("wall", "opening", "stair", "room")
 
 
@@ -71,6 +72,35 @@ def records(doc: Drawing) -> list[dict[str, Any]]:
     return list(found.values())
 
 
+def furniture(doc: Drawing) -> tuple[list[dict[str, Any]], list[str]]:
+    """The AutoCAD MCP Pro catalogue blocks (ARCH_<NAME> inserts in model space) as furniture
+    records: the item from the block's ITEM attribute (else its name), the insert point (the
+    back-left corner) and rotation. A scaled or mirrored insert is skipped with a warning."""
+    out: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    for ins in doc.modelspace().query("INSERT"):
+        name = ins.dxf.name
+        if not name.upper().startswith(BLOCK_PREFIX):
+            continue
+        item = next((a.dxf.text for a in ins.attribs if a.dxf.tag.upper() == "ITEM"), "") or name[len(BLOCK_PREFIX) :]
+        scale = (ins.dxf.get("xscale", 1.0), ins.dxf.get("yscale", 1.0))
+        if any(abs(s - 1.0) > 1e-6 for s in scale):
+            warnings.append(f"furniture {ins.dxf.handle} ({name}) skipped: scaled or mirrored {scale}")
+            continue
+        at = ins.dxf.insert
+        out.append(
+            {
+                "v": 1,
+                "kind": "furniture",
+                "id": ins.dxf.handle,
+                "item": item.strip().lower(),
+                "at": [float(at.x), float(at.y)],
+                "rotation": float(ins.dxf.get("rotation", 0.0)),
+            }
+        )
+    return out, warnings
+
+
 def read_plan(path: str | Path, storey_height: float | None = None) -> DxfPlan:
     """Parses the DXF with ezdxf and validates the records into a Plan."""
     p = Path(path)
@@ -85,12 +115,13 @@ def read_plan(path: str | Path, storey_height: float | None = None) -> DxfPlan:
         raise DxfPlanError(
             f"{p.name} holds no {APP_ID} records; export it from AutoCAD MCP Pro, whose arch_* tools write them"
         )
-    warnings: list[str] = []
+    pieces, warnings = furniture(doc)
     raw: dict[str, Any] = {
         "walls": [r for r in recs if r["kind"] == "wall"],
         "openings": [r for r in recs if r["kind"] == "opening"],
         "rooms": [r for r in recs if r["kind"] == "room"],
         "stairs": [r for r in recs if r["kind"] == "stair"],
+        "furniture": pieces,
     }
     if storey_height is not None:
         raw["storey"] = {"height": storey_height}

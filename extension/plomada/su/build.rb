@@ -16,7 +16,7 @@ module Plomada
     # then each step does one small unit (one wall, one opening, one label).
     module Build
       ROOFS = %w[flat gable hip none].freeze
-      KINDS_REPLACED = %w[walls opening slab roof room stair].freeze
+      KINDS_REPLACED = %w[walls opening slab roof room stair furniture].freeze
       BLONDEL_MM = (600.0..650.0).freeze # 2R + G, comfortable stairs
 
       module_function
@@ -84,13 +84,17 @@ module Plomada
         # One slab and one roof per building. A gable needs every footprint
         # rectangular; a hip takes any simple outline.
         pitched = outlines.map { |outline| pitched_roof(opts['roof'], outline, height, opts) }
+        known, unknown = plan['furniture'].partition { |f| Geometry.furniture_item?(f['item']) }
+        unless unknown.empty?
+          warnings << "#{unknown.size} furniture block(s) skipped, no massing for: #{unknown.map { |f| f['item'] }.uniq.join(', ')}"
+        end
         stairs = plan['stairs'].map do |st|
           lay = Geometry.stair_layout(st)
           warnings.concat(stair_warnings(st, lay, height + opts['slab_thickness']))
           [st, lay]
         end
         { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, pitched: pitched,
-          stairs: stairs, warnings: warnings, height: height }
+          stairs: stairs, furniture: known, warnings: warnings, height: height }
       end
 
       # The solved gable or hip roof of one building, nil for flat or none.
@@ -190,6 +194,9 @@ module Plomada
         plan['rooms'].each do |room|
           units << ["room #{room['id']}", -> { Rooms.label(model, room_record(room)) }]
         end
+        prep[:furniture].each_slice(8) do |batch|
+          units << ["furniture #{batch.map { |f| f['id'] }.join(', ')}", -> { batch.each { |f| Furniture.place(model, f) } }]
+        end
         units << ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
         units << ['view', -> { View.fit(model) if opts['fit_view'] }]
         UnitJob.new(label, units) do
@@ -198,7 +205,8 @@ module Plomada
             'walls' => plan['walls'].size, 'openings' => ops.size,
             'doors' => ops.count { |o| o['opening_kind'] == 'door' },
             'windows' => ops.count { |o| o['opening_kind'] == 'window' },
-            'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'wall_faces' => state[:faces],
+            'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'furniture' => prep[:furniture].size,
+            'wall_faces' => state[:faces],
             'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold],
             'groups' => state[:groups], 'storey' => storey, 'elevation' => state[:elevation],
             'storey_height' => prep[:height], 'roof' => state[:roof], 'stair_wells' => state[:wells].size,
@@ -286,7 +294,7 @@ module Plomada
       # inside the vertical field of view and the 3:2 horizontal one.
       def fit(model, fov = CONFIG[:scene_fov_deg])
         bb = Geom::BoundingBox.new
-        SU.plomada_entities(model).each { |e| bb.add(e.bounds) }
+        SU.plomada_entities(model).each { |e| bb.add(e.bounds) unless SU.kind(e) == 'terrain' }
         bb = model.bounds if bb.empty?
         return if bb.empty?
 

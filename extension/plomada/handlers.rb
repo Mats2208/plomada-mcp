@@ -20,7 +20,7 @@ module Plomada
     end
 
     def install_reads(r)
-      r.read('model_info') { |_p, ctx| SU::Inspect.model_info(ctx.model) }
+      r.read('model_info') { |p, ctx| SU::Inspect.model_info(ctx.model, p) }
       r.read('list_entities') { |p, ctx| SU::Inspect.list_entities(ctx.model, p) }
       r.read('list_tags') { |_p, ctx| SU::Inspect.list_tags(ctx.model) }
       r.read('list_materials') { |_p, ctx| SU::Inspect.list_materials(ctx.model) }

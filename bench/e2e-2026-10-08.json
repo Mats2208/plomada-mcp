@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-08T03:13:01",
+  "checks": {
+    "protocol 1, pro, entities_build": true,
+    "one undo removes the whole house": false,
+    "max tick under 100 ms during the build": true,
+    "build under 3.0 s": true,
+    "progress reported every step": true,
+    "first build matched": true,
+    "capture shaded under 400 ms and 350 KB": true,
+    "capture lines_only under 400 ms and 350 KB": true,
+    "fbx exported": true,
+    "4 wall records": true,
+    "plan round-trips within 0.5 mm": true,
+    "11 opening components, 4 D and 7 W": true,
+    "7 glass panes": true,
+    "3 groups: muros, losa, techo": true,
+    "every wall group manifold": true,
+    "zero internal faces": true
+  },
+  "tool_count": 24,
+  "status": {
+    "server_version": "0.1.0",
+    "protocol": 1,
+    "capabilities": {
+      "pro": true,
+      "entities_build": true,
+      "pbr": true,
+      "fbx_export": true
+    },
+    "sketchup_version": "25.0.571",
+    "ruby_version": "3.2.2"
+  },
+  "build_s_first": 0.814,
+  "build_s": 0.807,
+  "max_tick_ms_build": 41.03,
+  "build": {
+    "walls": 4,
+    "openings": 11,
+    "doors": 4,
+    "windows": 7,
+    "rooms": 4,
+    "wall_faces": 78,
+    "internal_faces_removed": 0,
+    "manifold": true,
+    "groups": [
+      "N00_muros",
+      "N00_losa",
+      "N00_techo"
+    ],
+    "steps": 24,
+    "elapsed_ms": 742.9,
+    "max_step_ms": 12.3
+  },
+  "progress_notifications": 24,
+  "captures": {
+    "shaded": {
+      "ms": 135.7,
+      "bytes": 37710,
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031304_549.jpg",
+      "size": [
+        1280,
+        720
+      ]
+    },
+    "lines_only": {
+      "ms": 120.0,
+      "bytes": 71611,
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031304_674.jpg",
+      "size": [
+        1280,
+        720
+      ]
+    }
+  },
+  "fbx": {
+    "path": "C:/Users/mateo/AppData/Local/Temp/plomada_e2e.fbx",
+    "format": "fbx",
+    "bytes": 1057282,
+    "job_id": "j14",
+    "steps": 1,
+    "elapsed_ms": 400.3,
+    "max_step_ms": 400.2
+  },
+  "plan_diffs": [],
+  "detail": {
+    "groups": [
+      "N00_losa",
+      "N00_muros",
+      "N00_techo"
+    ],
+    "walls": [
+      {
+        "name": "N00_muros",
+        "manifold": true,
+        "faces": 78,
+        "internal_faces": 0
+      }
+    ],
+    "doors": 4,
+    "windows": 7,
+    "opening_names": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "W1",
+      "W2",
+      "W3",
+      "W4",
+      "W5",
+      "W6",
+      "W7"
+    ],
+    "glass_panes": 7,
+    "rooms": 4
+  },
+  "max_tick_ms_after_build": 400.86,
+  "passed": false
+}

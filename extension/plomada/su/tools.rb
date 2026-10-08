@@ -17,7 +17,41 @@ module Plomada
 
       module_function
 
-      def model_info(model)
+      def model_info(model, params = {})
+        info = summary(model)
+        info['detail'] = detail(model) if params['detail'] == true
+        info
+      end
+
+      # What a check of the house needs: per walls group its manifold flag,
+      # face count and the faces strip_internal_faces would still remove;
+      # doors, windows and glass panes among the opening components.
+      def detail(model)
+        groups = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.plomada?(g) && SU.kind(g) != 'room' }
+        solids = begin
+          plan = Plan.normalize(PlanReader.read(model).merge('storey' => nil))
+          settings = PlanReader.storey_settings(model)
+          Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: settings['height'].to_f)[:solids]
+        rescue Plomada::Error
+          nil
+        end
+        walls = groups.select { |g| SU.kind(g) == 'walls' }.map do |g|
+          internal = solids ? Walls.internal_faces(g.entities, g.transformation, solids, CONFIG[:probe_mm]).size : nil
+          { 'name' => g.name, 'manifold' => g.manifold?, 'faces' => g.entities.grep(Sketchup::Face).size,
+            'internal_faces' => internal }
+        end
+        openings = model.entities.grep(Sketchup::ComponentInstance).select { |i| i.valid? && SU.kind(i) == 'opening' }
+        panes = openings.sum { |i| i.definition.entities.grep(Sketchup::Group).count { |p| p.name == 'vidrio' } }
+        {
+          'groups' => groups.map(&:name).sort, 'walls' => walls,
+          'doors' => openings.count { |i| i.get_attribute(DICT, 'opening_kind') == 'door' },
+          'windows' => openings.count { |i| i.get_attribute(DICT, 'opening_kind') == 'window' },
+          'opening_names' => openings.map(&:name).sort, 'glass_panes' => panes,
+          'rooms' => model.entities.grep(Sketchup::Group).count { |g| g.valid? && SU.kind(g) == 'room' }
+        }
+      end
+
+      def summary(model)
         counts = Hash.new(0)
         types = Hash.new(0)
         model.entities.each do |e|
@@ -283,6 +317,12 @@ module Plomada
         format = Plan.choice(params['format'], 'format', FORMATS)
         path = Plan.text(params['path'], 'path').tr('\\', '/')
         path = "#{path.sub(/\.[A-Za-z0-9]+\z/, '')}.#{format}" unless path.downcase.end_with?(".#{format}")
+        # save_copy refuses an untitled model, and Model#save can open the
+        # modal "Purge Unused?" prompt that would freeze the pump.
+        if format == 'skp' && model.path.to_s.empty?
+          raise InvalidParams, 'the model has never been saved, so SketchUp cannot write a copy of it; save it once ' \
+                               'in SketchUp (File > Save As), then call export_model again'
+        end
         units = [["export #{format}", lambda {
           FileUtils.mkdir_p(File.dirname(path))
           ok = case format

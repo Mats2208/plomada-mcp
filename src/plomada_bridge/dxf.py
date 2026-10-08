@@ -49,8 +49,7 @@ def _payload(entity: Any) -> dict[str, Any]:
     version = payload.get("v")
     if version != RECORD_VERSION:
         raise DxfPlanError(
-            f"{APP_ID} record on entity {handle} has version {version!r}; Plomada reads version "
-            f"{RECORD_VERSION} only"
+            f"{APP_ID} record on entity {handle} has version {version!r}; Plomada reads version {RECORD_VERSION} only"
         )
     kind = payload.get("kind")
     if kind not in KINDS:

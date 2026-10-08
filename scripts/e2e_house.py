@@ -119,7 +119,9 @@ async def run() -> dict[str, Any]:
         report["tool_count"] = len(tools.tools)
 
         st = structured(await client.call_tool("status", {}))
-        report["status"] = {k: st.get(k) for k in ("server_version", "protocol", "capabilities", "sketchup_version", "ruby_version")}
+        report["status"] = {
+            k: st.get(k) for k in ("server_version", "protocol", "capabilities", "sketchup_version", "ruby_version")
+        }
         checks["protocol 1, pro, entities_build"] = (
             st["protocol"] == 1 and st["capabilities"]["pro"] and st["capabilities"]["entities_build"]
         )
@@ -145,11 +147,27 @@ async def run() -> dict[str, Any]:
         t0 = time.perf_counter()
         build = structured(await client.call_tool("build_from_autocad", args, progress_callback=on_progress))
         report["build_s"] = round(time.perf_counter() - t0, 3)
-        report["max_tick_ms_build"] = structured(await client.call_tool("status", {"reset_max_tick": True}))["max_tick_ms"]
+        report["max_tick_ms_build"] = structured(await client.call_tool("status", {"reset_max_tick": True}))[
+            "max_tick_ms"
+        ]
         checks["max tick under 100 ms during the build"] = report["max_tick_ms_build"] < 100.0
-        report["build"] = {k: build.get(k) for k in ("walls", "openings", "doors", "windows", "rooms", "wall_faces",
-                                                       "internal_faces_removed", "manifold", "groups", "steps",
-                                                       "elapsed_ms", "max_step_ms")}
+        report["build"] = {
+            k: build.get(k)
+            for k in (
+                "walls",
+                "openings",
+                "doors",
+                "windows",
+                "rooms",
+                "wall_faces",
+                "internal_faces_removed",
+                "manifold",
+                "groups",
+                "steps",
+                "elapsed_ms",
+                "max_step_ms",
+            )
+        }
         report["progress_notifications"] = len(progress)
         checks[f"build under {BUILD_BUDGET_S} s"] = max(report["build_s"], report["build_s_first"]) < BUILD_BUDGET_S
         checks["progress reported every step"] = len(progress) == build["steps"]
@@ -167,8 +185,12 @@ async def run() -> dict[str, Any]:
             meta = json.loads(next(c.text for c in res.content if getattr(c, "type", "") == "text"))
             data = base64.b64decode(image.data)
             (img_dir / name).write_bytes(data)
-            report["captures"][style] = {"ms": round(ms, 1), "bytes": len(data), "path": meta["path"],
-                                         "size": [meta["width"], meta["height"]]}
+            report["captures"][style] = {
+                "ms": round(ms, 1),
+                "bytes": len(data),
+                "path": meta["path"],
+                "size": [meta["width"], meta["height"]],
+            }
             checks[f"capture {style} under {CAPTURE_BUDGET_MS:.0f} ms and 350 KB"] = (
                 ms < CAPTURE_BUDGET_MS and len(data) < CAPTURE_MAX_BYTES and image.mime_type == "image/jpeg"
             )
@@ -188,7 +210,9 @@ async def run() -> dict[str, Any]:
         d = info["detail"]
         report["detail"] = d
         checks["11 opening components, 4 D and 7 W"] = (
-            d["doors"] == 4 and d["windows"] == 7 and d["opening_names"] == sorted([f"D{i}" for i in range(1, 5)] + [f"W{i}" for i in range(1, 8)])
+            d["doors"] == 4
+            and d["windows"] == 7
+            and d["opening_names"] == sorted([f"D{i}" for i in range(1, 5)] + [f"W{i}" for i in range(1, 8)])
         )
         checks["7 glass panes"] = d["glass_panes"] == 7
         checks["3 groups: muros, losa, techo"] = d["groups"] == ["N00_losa", "N00_muros", "N00_techo"]
@@ -211,9 +235,11 @@ def main() -> int:
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     for name, ok in report["checks"].items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
-    print(f"build {report['build_s']} s (first {report['build_s_first']} s), max tick during build "
-          f"{report['max_tick_ms_build']} ms (after: {report['max_tick_ms_after_build']} ms incl. FBX export), "
-          f"captures {', '.join(f'{k} {v['ms']} ms' for k, v in report['captures'].items())}")
+    print(
+        f"build {report['build_s']} s (first {report['build_s_first']} s), max tick during build "
+        f"{report['max_tick_ms_build']} ms (after: {report['max_tick_ms_after_build']} ms incl. FBX export), "
+        f"captures {', '.join(f'{k} {v["ms"]} ms' for k, v in report['captures'].items())}"
+    )
     print(f"report: {out}")
     return 0 if report["passed"] else 1
 

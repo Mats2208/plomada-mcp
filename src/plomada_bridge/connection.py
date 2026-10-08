@@ -58,20 +58,31 @@ class SketchUpClient:
             if self.connected and self.hello is not None:
                 return self.hello
             await self._drop()
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + self.config.connect_timeout_s
             try:
-                return await asyncio.wait_for(self._connect(), timeout=self.config.connect_timeout_s)
-            except TimeoutError:
+                return await self._connect(deadline)
+            except BaseException:
                 await self._drop()
-                raise NotResponding() from None
+                raise
 
-    async def _connect(self) -> dict[str, Any]:
+    async def _connect(self, deadline: float) -> dict[str, Any]:
+        """TCP connect, then hello, both within the connect timeout. A blocked
+        SketchUp still completes the TCP handshake (the kernel queues the
+        connection), so only an unanswered hello means "not responding"; a
+        connect that is refused or never completes means nothing listens."""
         cfg = self.config
+        loop = asyncio.get_running_loop()
+        hint = "start SketchUp with the Plomada extension enabled (Extensions > Extension Manager) and retry."
         try:
-            reader, writer = await asyncio.open_connection(cfg.host, cfg.port)
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(cfg.host, cfg.port), timeout=max(0.01, deadline - loop.time())
+            )
+        except TimeoutError:
+            raise Unreachable(f"nothing accepted a connection on {cfg.host}:{cfg.port}; {hint}") from None
         except OSError as exc:
             raise Unreachable(
-                f"SketchUp is not reachable on {cfg.host}:{cfg.port} ({exc.strerror or exc}): start "
-                "SketchUp with the Plomada extension enabled (Extensions > Extension Manager) and retry."
+                f"SketchUp is not reachable on {cfg.host}:{cfg.port} ({exc.strerror or exc}): {hint}"
             ) from None
         self._reader, self._writer = reader, writer
         token = self._read_token()
@@ -91,7 +102,11 @@ class SketchUpClient:
             )
         )
         await writer.drain()
-        reply = await future
+        try:
+            reply = await asyncio.wait_for(future, timeout=max(0.01, deadline - loop.time()))
+        except TimeoutError:
+            self._pending.pop(hello_id, None)
+            raise NotResponding() from None
         if "error" in reply:
             err = reply["error"]
             await self._drop()
@@ -193,6 +208,15 @@ class SketchUpClient:
                     self._writer.write(frame)
                     await self._writer.drain()
                 reply = await asyncio.wait_for(future, timeout=limit)
+            except TimeoutError:  # before OSError: TimeoutError is an OSError since Python 3.11
+                self._pending.pop(req_id, None)
+                if read_only:
+                    raise NotResponding() from None
+                await self._send_cancel(req_id)
+                raise OutcomeUnknown(
+                    f"{method} did not answer within {limit:.0f} s, so its outcome is unknown. Call "
+                    "get_plan or status to see the model before retrying; it was not replayed."
+                ) from None
             except (ConnectionLost, ConnectionError, OSError) as exc:
                 self._pending.pop(req_id, None)
                 await self._reset()
@@ -204,15 +228,6 @@ class SketchUpClient:
                     f"The connection to SketchUp dropped during {method}, so its outcome is unknown. "
                     "Call get_plan or status to see the model before retrying; it was not replayed."
                 ) from exc
-            except TimeoutError:
-                self._pending.pop(req_id, None)
-                if read_only:
-                    raise NotResponding() from None
-                await self._send_cancel(req_id)
-                raise OutcomeUnknown(
-                    f"{method} did not answer within {limit:.0f} s, so its outcome is unknown. Call "
-                    "get_plan or status to see the model before retrying; it was not replayed."
-                ) from None
             except asyncio.CancelledError:
                 self._pending.pop(req_id, None)
                 if not read_only:

@@ -115,9 +115,14 @@ class Plan(BaseModel):
     def to_wire(self) -> dict[str, Any]:
         """The JSON the extension's build_plan takes (records carry v and kind)."""
         out: dict[str, Any] = {
-            "walls": [{"v": 1, "kind": "wall", **w.model_dump(exclude={"v"}, exclude_none=True)} for w in self.walls],
-            "openings": [{"v": 1, "kind": "opening", **o.model_dump(exclude={"v"})} for o in self.openings],
-            "rooms": [{"v": 1, "kind": "room", **r.model_dump(exclude={"v"})} for r in self.rooms],
+            "walls": [
+                {"v": 1, "kind": "wall", **w.model_dump(mode="json", exclude={"v"}, exclude_none=True)}
+                for w in self.walls
+            ],
+            "openings": [
+                {"v": 1, "kind": "opening", **o.model_dump(mode="json", exclude={"v"})} for o in self.openings
+            ],
+            "rooms": [{"v": 1, "kind": "room", **r.model_dump(mode="json", exclude={"v"})} for r in self.rooms],
         }
         if self.storey is not None:
             out["storey"] = self.storey.model_dump()

@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import functools
+from collections.abc import Awaitable, Callable
 from typing import Annotated, Any, Literal
 
 from mcp.server.mcpserver import Context, Image, MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
-from mcp_types import ToolAnnotations
+from mcp_types import CallToolResult, TextContent, ToolAnnotations
 from pydantic import BaseModel, Field, ValidationError
 
 from . import __version__
@@ -45,6 +47,20 @@ def _mut(destructive: bool, idempotent: bool) -> ToolAnnotations:
     )
 
 
+def exact_errors(fn: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+    """Returns refusals as an error result carrying exactly our sentence (the
+    SDK would prefix a raised ToolError with "Error executing tool <name>:")."""
+
+    @functools.wraps(fn)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return await fn(*args, **kwargs)
+        except ToolError as exc:
+            return CallToolResult(content=[TextContent(type="text", text=str(exc))], is_error=True)
+
+    return wrapper
+
+
 Mm = float
 DeadlineMs = Annotated[
     int, Field(ge=1_000, le=600_000, description="ms the job may run in SketchUp before it aborts and reverts")
@@ -66,7 +82,9 @@ class Bridge:
         self.config = config or load_config()
         self.client = SketchUpClient(self.config)
 
-    async def read(self, tool: str, method: str, params: dict[str, Any] | None = None, timeout: float | None = None) -> Any:
+    async def read(
+        self, tool: str, method: str, params: dict[str, Any] | None = None, timeout: float | None = None
+    ) -> Any:
         try:
             return await self.client.call(method, params or {}, read_only=True, timeout=timeout)
         except BridgeError as err:
@@ -86,7 +104,10 @@ class Bridge:
 
         try:
             return await self.client.call(
-                method, params, read_only=False, deadline_ms=deadline_ms or self.config.default_deadline_ms,
+                method,
+                params,
+                read_only=False,
+                deadline_ms=deadline_ms or self.config.default_deadline_ms,
                 on_progress=progress,
             )
         except BridgeError as err:
@@ -105,6 +126,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     # --- read-only ----------------------------------------------------------------------
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def status(
         reset_max_tick: Annotated[
             bool, Field(description="start measuring max_tick_ms afresh after this answer (for benchmarks)")
@@ -123,6 +145,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return st
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def model_info(
         detail: Annotated[
             bool, Field(description="also check the house: manifold walls, internal faces, doors, windows, glass panes")
@@ -133,6 +156,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.read("model_info", "model_info", {"detail": True} if detail else {})
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def list_entities(
         tag: Annotated[str | None, Field(description="only entities on this tag, e.g. Muros")] = None,
         cursor: Annotated[int | None, Field(description="next_cursor from the previous page (persistent_id)")] = None,
@@ -147,22 +171,26 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.read("list_entities", "list_entities", params)
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def list_tags() -> dict[str, Any]:
         """Tags (layers) with visibility, colour and top-level entity count."""
         return await b.read("list_tags", "list_tags")
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def list_materials() -> dict[str, Any]:
         """Materials with RGB, alpha, texture flag and PBR factors when set."""
         return await b.read("list_materials", "list_materials")
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def get_plan() -> dict[str, Any]:
         """The plan read back from the model's plomada attributes: walls, openings, rooms and storey
         settings, in the AutoCAD MCP Pro record format (mm)."""
         return await b.read("get_plan", "get_plan")
 
     @mcp.tool(annotations=READ, structured_output=False)
+    @exact_errors
     async def capture_view(
         width: Annotated[int, Field(ge=64, le=8192, description="image width, px")] = cfg.capture_width,
         height: Annotated[int, Field(ge=64, le=8192, description="image height, px")] = cfg.capture_height,
@@ -175,11 +203,14 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     ) -> list[Any]:
         """A JPEG of the SketchUp viewport (quality 0.7, shrunk until under 350 KB). The camera and render
         mode are restored afterwards. Returns the image and its file path in %TEMP%."""
-        res = await b.read("capture_view", "capture_view", {"width": width, "height": height, "style": style, "view": view})
+        res = await b.read(
+            "capture_view", "capture_view", {"width": width, "height": height, "style": style, "view": view}
+        )
         data = base64.b64decode(res.pop("data_base64"))
         return [Image(data=data, format="jpeg"), res]
 
     @mcp.tool(annotations=READ)
+    @exact_errors
     async def job_status() -> dict[str, Any]:
         """The running job (id, method, progress), queued jobs, and the last finished jobs."""
         return await b.read("job_status", "job_status")
@@ -187,14 +218,25 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     # --- the flagship -----------------------------------------------------------------------
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=False))
+    @exact_errors
     async def build_from_autocad(
-        dxf_path: Annotated[str, Field(min_length=1, description="DXF exported by AutoCAD MCP Pro (ACADMCP_ARCH records)")],
+        dxf_path: Annotated[
+            str, Field(min_length=1, description="DXF exported by AutoCAD MCP Pro (ACADMCP_ARCH records)")
+        ],
         ctx: Context,
-        storey_height: Annotated[float, Field(gt=0, le=10_000, description="storey and wall height, mm")] = cfg.storey_height_mm,
+        storey_height: Annotated[
+            float, Field(gt=0, le=10_000, description="storey and wall height, mm")
+        ] = cfg.storey_height_mm,
         slab: Annotated[bool, Field(description="build the 150 mm floor slab under the exterior wall")] = True,
-        roof: Annotated[Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")] = "flat",
-        overhang: Annotated[float, Field(ge=0, le=3_000, description="roof overhang past the outer face, mm")] = cfg.overhang_mm,
-        replace: Annotated[bool, Field(description="first erase the groups and components Plomada built before")] = True,
+        roof: Annotated[
+            Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")
+        ] = "flat",
+        overhang: Annotated[
+            float, Field(ge=0, le=3_000, description="roof overhang past the outer face, mm")
+        ] = cfg.overhang_mm,
+        replace: Annotated[
+            bool, Field(description="first erase the groups and components Plomada built before")
+        ] = True,
         deadline_ms: DeadlineMs = cfg.default_deadline_ms,
     ) -> dict[str, Any]:
         """Builds the exact 3D house of an AutoCAD MCP Pro plan in one call and one undo step: manifold
@@ -203,7 +245,9 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         try:
             parsed = await asyncio.to_thread(read_plan, dxf_path, storey_height)
         except DxfPlanError as exc:
-            raise ToolError(f"build_from_autocad refused its input (-32004): {exc}. Fix the DXF or the path and call it again.") from None
+            raise ToolError(
+                f"build_from_autocad refused its input (-32004): {exc}. Fix the DXF or the path and call it again."
+            ) from None
         params = {
             "plan": parsed.plan.to_wire(),
             "options": build_options(storey_height, slab, roof, overhang, replace),
@@ -216,12 +260,17 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return res
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=False))
+    @exact_errors
     async def build_plan(
         plan: Annotated[PlanInput, Field(description="walls, openings and rooms in mm")],
         ctx: Context,
-        storey_height: Annotated[float, Field(gt=0, le=10_000, description="storey and wall height, mm")] = cfg.storey_height_mm,
+        storey_height: Annotated[
+            float, Field(gt=0, le=10_000, description="storey and wall height, mm")
+        ] = cfg.storey_height_mm,
         slab: Annotated[bool, Field(description="build the floor slab under the exterior wall")] = True,
-        roof: Annotated[Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")] = "flat",
+        roof: Annotated[
+            Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")
+        ] = "flat",
         overhang: Annotated[float, Field(ge=0, le=3_000, description="roof overhang, mm")] = cfg.overhang_mm,
         replace: Annotated[bool, Field(description="first erase what Plomada built before")] = True,
         deadline_ms: DeadlineMs = cfg.default_deadline_ms,
@@ -230,52 +279,78 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         try:
             checked = Plan.model_validate(plan.model_dump())
         except ValidationError as exc:
-            raise ToolError(f"build_plan refused its input (-32004): plan.{describe_error(exc)}. Fix it and call again.") from None
+            raise ToolError(
+                f"build_plan refused its input (-32004): plan.{describe_error(exc)}. Fix it and call again."
+            ) from None
         params = {"plan": checked.to_wire(), "options": build_options(storey_height, slab, roof, overhang, replace)}
         return await b.mutate("build_plan", "build_plan", params, ctx, deadline_ms)
 
     # --- edits ------------------------------------------------------------------------------
 
     @mcp.tool(annotations=_mut(destructive=False, idempotent=False))
+    @exact_errors
     async def add_wall(
         id: Annotated[str, Field(min_length=1, description="new wall id, unique")],
         axis: Annotated[list[tuple[Mm, Mm]], Field(min_length=2, description="axis polyline [[x, y], ...], mm")],
         thickness: Annotated[float, Field(gt=0, le=2_000, description="mm")],
         ctx: Context,
         justification: Annotated[
-            Literal["center", "left", "right"], Field(description="side of the axis the wall lies on, from its first point")
+            Literal["center", "left", "right"],
+            Field(description="side of the axis the wall lies on, from its first point"),
         ] = "center",
         material: Annotated[str, Field(description="record material, e.g. brick, gypsum_board")] = "brick",
         closed: Annotated[bool, Field(description="close the axis into a loop")] = False,
         height: Annotated[float | None, Field(gt=0, le=10_000, description="mm; default the storey height")] = None,
     ) -> dict[str, Any]:
         """Adds a wall to the house and rebuilds the walls (T junctions and mitres resolved), one undo step."""
-        params: dict[str, Any] = {"id": id, "axis": [list(p) for p in axis], "thickness": thickness,
-                                  "justification": justification, "material": material, "closed": closed}
+        params: dict[str, Any] = {
+            "id": id,
+            "axis": [list(p) for p in axis],
+            "thickness": thickness,
+            "justification": justification,
+            "material": material,
+            "closed": closed,
+        }
         if height is not None:
             params["height"] = height
         return await b.mutate("add_wall", "add_wall", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=False, idempotent=False))
+    @exact_errors
     async def add_opening(
         id: Annotated[str, Field(min_length=1, description="new opening id, unique")],
         wall: Annotated[str, Field(min_length=1, description="host wall id")],
         opening_kind: Annotated[Literal["door", "window"], Field(description="door or window")],
-        offset: Annotated[float, Field(ge=0, description="mm along the host axis from its first point to the near jamb")],
+        offset: Annotated[
+            float, Field(ge=0, description="mm along the host axis from its first point to the near jamb")
+        ],
         width: Annotated[float, Field(gt=0, description="mm")],
         ctx: Context,
-        sill: Annotated[float | None, Field(ge=0, description="mm above the floor; null is 0 for doors, 900 for windows")] = None,
+        sill: Annotated[
+            float | None, Field(ge=0, description="mm above the floor; null is 0 for doors, 900 for windows")
+        ] = None,
         height: Annotated[float | None, Field(gt=0, description="mm; null is 2100 for doors, 1200 for windows")] = None,
         swing: Annotated[Literal["in", "out"], Field(description="in opens to the left of the host axis")] = "in",
         hand: Annotated[Literal["left", "right"], Field(description="hinge jamb seen from the swing side")] = "left",
         tag: Annotated[str | None, Field(description="component name, default the id")] = None,
     ) -> dict[str, Any]:
         """Cuts a new door or window into a wall and places its component, one undo step."""
-        params = {"id": id, "wall": wall, "opening_kind": opening_kind, "offset": offset, "width": width,
-                  "sill": sill, "height": height, "swing": swing, "hand": hand, "tag": tag}
+        params = {
+            "id": id,
+            "wall": wall,
+            "opening_kind": opening_kind,
+            "offset": offset,
+            "width": width,
+            "sill": sill,
+            "height": height,
+            "swing": swing,
+            "hand": hand,
+            "tag": tag,
+        }
         return await b.mutate("add_opening", "add_opening", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def move_opening(
         id: Annotated[str, Field(min_length=1, description="opening id, e.g. W2")],
         offset: Annotated[float, Field(ge=0, description="new mm along the host axis to the near jamb")],
@@ -285,6 +360,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.mutate("move_opening", "move_opening", {"id": id, "offset": offset}, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def set_wall_height(
         id: Annotated[str, Field(min_length=1, description="wall id")],
         height: Annotated[float, Field(gt=0, le=10_000, description="new wall height, mm")],
@@ -294,9 +370,12 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.mutate("set_wall_height", "set_wall_height", {"id": id, "height": height}, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def add_slab(
         ctx: Context,
-        thickness: Annotated[float, Field(gt=0, le=2_000, description="mm; the top stays at z 0")] = cfg.slab_thickness_mm,
+        thickness: Annotated[
+            float, Field(gt=0, le=2_000, description="mm; the top stays at z 0")
+        ] = cfg.slab_thickness_mm,
         outline: Annotated[
             list[tuple[Mm, Mm]] | None, Field(description="[[x, y], ...] mm; default the exterior wall's outer face")
         ] = None,
@@ -308,6 +387,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.mutate("add_slab", "add_slab", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def add_roof(
         ctx: Context,
         kind: Annotated[Literal["flat", "gable"], Field(description="gable needs a rectangular footprint")] = "flat",
@@ -317,10 +397,12 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     ) -> dict[str, Any]:
         """Builds (or replaces) the roof N00_techo: a flat slab on the wall tops, or a gable with its ridge
         along the longer side."""
-        return await b.mutate("add_roof", "add_roof", {"kind": kind, "overhang": overhang, "thickness": thickness,
-                                                       "pitch": pitch}, ctx)
+        return await b.mutate(
+            "add_roof", "add_roof", {"kind": kind, "overhang": overhang, "thickness": thickness, "pitch": pitch}, ctx
+        )
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def set_material(
         target: Annotated[str, Field(min_length=1, description="wall id, opening id, group name or tag name")],
         material: Annotated[str, Field(min_length=1, description="e.g. MAT_ladrillo, MAT_hormigon, MAT_madera")],
@@ -332,23 +414,34 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     # --- scenes and exports -----------------------------------------------------------------
 
     @mcp.tool(annotations=_mut(destructive=False, idempotent=True))
+    @exact_errors
     async def create_scene(
         name: Annotated[str, Field(min_length=1, description="scene name")],
         eye: Annotated[tuple[Mm, Mm], Field(description="[x, y] of the camera, mm")],
         target: Annotated[tuple[Mm, Mm, Mm], Field(description="[x, y, z] the camera looks at, mm")],
         ctx: Context,
-        eye_height: Annotated[float, Field(ge=-10_000, le=100_000, description="camera height, mm")] = cfg.eye_height_mm,
+        eye_height: Annotated[
+            float, Field(ge=-10_000, le=100_000, description="camera height, mm")
+        ] = cfg.eye_height_mm,
         fov: Annotated[float, Field(gt=0, lt=180, description="field of view, degrees")] = cfg.fov_deg,
         two_point: Annotated[bool, Field(description="keep the camera level so verticals stay vertical")] = True,
         style: Annotated[Literal["shaded", "lines_only"], Field(description="scene render mode")] = "shaded",
     ) -> dict[str, Any]:
         """Creates (or updates) a scene with an eye-height camera; with two_point the target is levelled to
         the eye so verticals stay vertical."""
-        params = {"name": name, "eye": list(eye), "target": list(target), "eye_height": eye_height, "fov": fov,
-                  "two_point": two_point, "style": style}
+        params = {
+            "name": name,
+            "eye": list(eye),
+            "target": list(target),
+            "eye_height": eye_height,
+            "fov": fov,
+            "two_point": two_point,
+            "style": style,
+        }
         return await b.mutate("create_scene", "create_scene", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def export_scene_images(
         dir: Annotated[str, Field(min_length=1, description="folder for the images (created if missing)")],
         ctx: Context,
@@ -366,6 +459,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.mutate("export_scene_images", "export_scene_images", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def export_model(
         path: Annotated[str, Field(min_length=1, description="output file; the extension follows format")],
         format: Annotated[Literal["skp", "fbx", "obj"], Field(description="skp needs a model saved at least once")],
@@ -377,12 +471,14 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     # --- housekeeping -----------------------------------------------------------------------
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def reset_plomada(ctx: Context) -> dict[str, Any]:
         """Erases every group, component and scene Plomada made (those carrying a plomada attribute); leaves
         everything else. Never opens a new file."""
         return await b.mutate("reset_plomada", "reset_plomada", {}, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=False))
+    @exact_errors
     async def undo(
         ctx: Context,
         steps: Annotated[int, Field(ge=1, le=10, description="undo steps; each Plomada call is one step")] = 1,
@@ -391,6 +487,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         return await b.mutate("undo", "undo", {"steps": steps}, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def job_cancel(
         job_id: Annotated[str | None, Field(description="job id from job_status; default the running job")] = None,
     ) -> dict[str, Any]:
@@ -402,6 +499,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
             raise ToolError(describe(err, "job_cancel")) from None
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=False))
+    @exact_errors
     async def execute_ruby(
         code: Annotated[str, Field(min_length=1, max_length=200_000, description="Ruby source to run in SketchUp")],
         ctx: Context,

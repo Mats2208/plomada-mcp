@@ -89,13 +89,9 @@ def _describe_code(err: SketchUpError, tool: str) -> str:
             "check the input or call status."
         )
     if code == QUEUE_FULL:
-        return (
-            f"{tool} was not queued (-32006): {msg}. Wait for the running job (job_status) and retry."
-        )
+        return f"{tool} was not queued (-32006): {msg}. Wait for the running job (job_status) and retry."
     if code == MODEL_CHANGED:
-        return (
-            f"{tool} stopped (-32007): {msg}. Call get_plan to see what is in the model before retrying."
-        )
+        return f"{tool} stopped (-32007): {msg}. Call get_plan to see what is in the model before retrying."
     if code == RUBY_DISABLED:
         return (
             "execute_ruby is disabled (-32010). Enable 'Allow execute_ruby' in SketchUp under "

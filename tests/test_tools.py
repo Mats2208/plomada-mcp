@@ -1,0 +1,145 @@
+"""The MCP tools in-process against the fake extension: what they send and what the model reads."""
+
+from __future__ import annotations
+
+import base64
+import json
+
+from mcp.client import Client
+
+from conftest import DXF, FakeExtension, Reject, make_config
+from plomada_bridge.errors import NOT_RESPONDING
+from plomada_bridge.server import Bridge, create_server
+
+JPEG = b"\xff\xd8\xff\xe0" + b"0" * 100 + b"\xff\xd9"
+
+
+async def _session(fake: FakeExtension, tmp_path, body, **cfg):
+    await fake.start()
+    bridge = Bridge(make_config(tmp_path, fake.port, **cfg))
+    try:
+        async with Client(create_server(bridge)) as client:
+            return await body(client)
+    finally:
+        await bridge.client.close()
+        await fake.stop()
+
+
+def _text(result) -> str:
+    return " ".join(getattr(c, "text", "") for c in result.content)
+
+
+def test_tool_list_and_annotations(run, tmp_path):
+    async def body(client):
+        return (await client.list_tools()).tools
+
+    tools = {t.name: t for t in run(_session(FakeExtension(), tmp_path, body))}
+    assert len(tools) == 24
+    for name in (
+        "status",
+        "model_info",
+        "list_entities",
+        "list_tags",
+        "list_materials",
+        "get_plan",
+        "capture_view",
+        "job_status",
+    ):
+        assert tools[name].annotations.read_only_hint is True, name
+        assert tools[name].annotations.destructive_hint is False
+    for name in ("build_from_autocad", "reset_plomada", "undo", "execute_ruby"):
+        assert tools[name].annotations.read_only_hint is False
+        assert tools[name].annotations.destructive_hint is True
+    props = tools["build_from_autocad"].input_schema["properties"]
+    assert props["storey_height"]["default"] == 2800.0 and "mm" in props["storey_height"]["description"]
+    assert props["roof"]["enum"] == ["flat", "gable", "none"]
+
+
+def test_build_from_autocad_sends_the_parsed_plan(run, tmp_path):
+    fake = FakeExtension(
+        progress={"build_plan": 2},
+        handlers={"build_plan": lambda p: {"walls": 4, "openings": 11, "steps": 2, "warnings": []}},
+    )
+
+    async def body(client):
+        return await client.call_tool("build_from_autocad", {"dxf_path": str(DXF), "roof": "gable"})
+
+    result = run(_session(fake, tmp_path, body))
+    assert not result.is_error, _text(result)
+    sent = next(p for m, p in fake.seen if m == "build_plan")
+    plan = sent["plan"]
+    assert (len(plan["walls"]), len(plan["openings"]), len(plan["rooms"])) == (4, 11, 4)
+    assert sent["options"] == {
+        "storey_height": 2800.0,
+        "slab": True,
+        "roof": "gable",
+        "overhang": 400.0,
+        "replace": True,
+    }
+    assert result.structured_content["records"] == 19
+
+
+def test_bad_dxf_path_is_refused_before_sketchup(run, tmp_path):
+    fake = FakeExtension()
+
+    async def body(client):
+        return await client.call_tool("build_from_autocad", {"dxf_path": str(tmp_path / "missing.dxf")})
+
+    result = run(_session(fake, tmp_path, body))
+    assert result.is_error and "(-32004)" in _text(result) and "is not a file" in _text(result)
+    assert "build_plan" not in fake.methods()
+
+
+def test_status_when_sketchup_is_blocked(run, tmp_path):
+    async def body(client):
+        return await client.call_tool("status", {})
+
+    result = run(_session(FakeExtension(answer_hello=False), tmp_path, body))
+    assert result.is_error
+    assert _text(result) == NOT_RESPONDING
+
+
+def test_capture_view_returns_an_image(run, tmp_path):
+    fake = FakeExtension(
+        handlers={
+            "capture_view": lambda p: {
+                "path": "C:/Temp/plomada_capture_1.jpg",
+                "width": p["width"],
+                "height": p["height"],
+                "bytes": len(JPEG),
+                "mime": "image/jpeg",
+                "style": p["style"],
+                "data_base64": base64.b64encode(JPEG).decode(),
+            }
+        }
+    )
+
+    async def body(client):
+        return await client.call_tool("capture_view", {"style": "lines_only"})
+
+    result = run(_session(fake, tmp_path, body))
+    image = next(c for c in result.content if c.type == "image")
+    assert image.mime_type == "image/jpeg" and base64.b64decode(image.data) == JPEG
+    meta = json.loads(next(c.text for c in result.content if c.type == "text"))
+    assert meta["path"].endswith(".jpg") and meta["width"] == 1280 and meta["style"] == "lines_only"
+
+
+def test_extension_errors_become_tool_errors(run, tmp_path):
+    def refuse(_p):
+        raise Reject(-32010, "execute_ruby is disabled")
+
+    async def body(client):
+        return await client.call_tool("execute_ruby", {"code": "1+1"})
+
+    result = run(_session(FakeExtension(handlers={"execute_ruby": refuse}), tmp_path, body))
+    assert result.is_error and "(-32010)" in _text(result) and "Extensions > Plomada > Settings" in _text(result)
+
+
+def test_argument_bounds_are_enforced_by_the_schema(run, tmp_path):
+    async def body(client):
+        return await client.call_tool("undo", {"steps": 11})
+
+    fake = FakeExtension()
+    result = run(_session(fake, tmp_path, body))
+    assert result.is_error
+    assert "undo" not in fake.methods()

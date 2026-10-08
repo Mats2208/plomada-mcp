@@ -95,8 +95,10 @@ def main(argv: list[str]) -> int:
         same_year = {n: a for n, a in apps.items() if a[0] == v[0]}
         newer_ok = [n for n, a in apps.items() if a[0] > v[0]]
         if same_year and all(a < v for a in same_year.values()) and not newer_ok:
-            print(f"  NO {f}: saved by {fmt(v)}, newer than {', '.join(f'{n} {fmt(a)}' for n, a in same_year.items())}"
-                  " -> opening it shows the File Version Warning")
+            print(
+                f"  NO {f}: saved by {fmt(v)}, newer than {', '.join(f'{n} {fmt(a)}' for n, a in same_year.items())}"
+                " -> opening it shows the File Version Warning"
+            )
             worst = 1
         else:
             ok = [n for n, a in apps.items() if a >= v]

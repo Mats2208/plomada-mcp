@@ -34,7 +34,7 @@ def test_tool_list_and_annotations(run, tmp_path):
         return (await client.list_tools()).tools
 
     tools = {t.name: t for t in run(_session(FakeExtension(), tmp_path, body))}
-    assert len(tools) == 26
+    assert len(tools) == 27
     for name in (
         "status",
         "model_info",
@@ -79,6 +79,29 @@ def test_build_from_autocad_sends_the_parsed_plan(run, tmp_path):
         "furniture": "library",
     }
     assert result.structured_content["records"] == 19
+
+
+def test_export_drawings_sends_views_scale_and_sections(run, tmp_path):
+    fake = FakeExtension(handlers={"export_drawings": lambda p: {"dir": p["dir"], "images": []}})
+
+    async def body(client):
+        return await client.call_tool(
+            "export_drawings",
+            {
+                "dir": str(tmp_path),
+                "views": ["elevations", "sections"],
+                "styles": ["line"],
+                "px_per_m": 90,
+                "sections": [{"name": "A-A", "axis": "x", "at": 12500, "look": "west"}],
+            },
+        )
+
+    result = run(_session(fake, tmp_path, body))
+    assert not result.is_error, _text(result)
+    sent = next(p for m, p in fake.seen if m == "export_drawings")
+    assert sent["views"] == ["elevations", "sections"] and sent["styles"] == ["line"] and sent["px_per_m"] == 90
+    assert sent["sections"] == [{"name": "A-A", "axis": "x", "at": 12500.0, "look": "west"}]
+    assert sent["cut_height"] == 1200.0
 
 
 def test_the_component_library_travels_with_the_build(run, tmp_path):

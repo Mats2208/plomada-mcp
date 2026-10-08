@@ -23,7 +23,7 @@ from .config import BridgeConfig, load_config
 from .connection import SketchUpClient
 from .dxf import DxfPlanError, read_plan
 from .errors import NOT_RESPONDING, BridgeError, NotResponding, describe
-from .models import Furniture, Opening, Plan, Room, Site, Stair, Wall, describe_error
+from .models import DrawingSection, Furniture, Opening, Plan, Room, Site, Stair, Wall, describe_error
 
 INSTRUCTIONS = """\
 Plomada models architecture inside a running SketchUp 2025 (Windows) from plans drawn by
@@ -39,6 +39,7 @@ Furniture blocks become real models from the component library where it maps the
 SITIO_<NAME> blocks (ARBOL, PALMERA, PINO, ARBUSTO, MACETA, AUTO, SUV, PICKUP, REPOSERA,
 PARRILLA, MESA_JARDIN, PERSONA, FAROLA) and polylines on SITIO-PAVIMENTO, SITIO-DECK,
 SITIO-PILETA (closed) and SITIO-CERCO; then add_terrain lays the lawn around it all.
+For a drawing set (plans, elevations, sections, axonometrics) use export_drawings, never execute_ruby.
 Edit afterwards with move_opening, set_wall_height, add_wall, add_opening, add_slab, add_roof,
 set_material; they read the plan back from the model, never from the DXF, and take storey
 when the model has several.
@@ -612,6 +613,46 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         if style is not None:
             params["style"] = style
         return await b.mutate("export_scene_images", "export_scene_images", params, ctx)
+
+    @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
+    async def export_drawings(
+        dir: Annotated[str, Field(min_length=1, description="folder for the images (created if missing)")],
+        ctx: Context,
+        views: Annotated[
+            list[Literal["plans", "elevations", "sections", "axonometrics"]] | None,
+            Field(description="which drawings; default all four kinds"),
+        ] = None,
+        styles: Annotated[
+            list[Literal["render", "line"]] | None,
+            Field(description="render: textured; line: black hidden-line drawing on white; default both"),
+        ] = None,
+        px_per_m: Annotated[
+            float, Field(ge=20, le=400, description="pixels per metre, shared by every plan, elevation and section")
+        ] = 110.0,
+        cut_height: Annotated[
+            float, Field(gt=0, le=10_000, description="mm above each floor where plans are cut")
+        ] = 1200.0,
+        sections: Annotated[
+            list[DrawingSection] | None,
+            Field(
+                description="section cuts; default A-A across x and B-B across y through the middle of the buildings"
+            ),
+        ] = None,
+    ) -> dict[str, Any]:
+        """Writes the 2D drawings of the model as PNG images, every orthographic one at the same scale:
+        a plan cut per storey plus one of the whole plot (planta_N00, planta_lote), the four elevations with
+        trees and cars hidden (elevacion_sur...), the sections (corte_AA...) and two axonometrics, one cut
+        below the roof. Each comes as <name>_render.png and <name>_linea.png. Camera, render settings, hidden
+        entities and section planes are restored afterwards; nothing in the model changes."""
+        params: dict[str, Any] = {"dir": dir, "px_per_m": px_per_m, "cut_height": cut_height}
+        if views is not None:
+            params["views"] = views
+        if styles is not None:
+            params["styles"] = styles
+        if sections is not None:
+            params["sections"] = [s.model_dump() for s in sections]
+        return await b.mutate("export_drawings", "export_drawings", params, ctx)
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
     @exact_errors

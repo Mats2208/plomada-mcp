@@ -147,6 +147,16 @@ class Site(BaseModel):
     fences: list[SiteFence] = Field(default_factory=list)
 
 
+class DrawingSection(BaseModel):
+    """A section cut for export_drawings: across x (at = x in mm) or y, looking along the other axis."""
+
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, Field(min_length=1, max_length=20, description="e.g. A-A")]
+    axis: Literal["x", "y"]
+    at: Annotated[float, Field(allow_inf_nan=False, description="mm")]
+    look: Literal["north", "south", "east", "west"]
+
+
 class Storey(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

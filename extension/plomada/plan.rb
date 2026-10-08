@@ -13,12 +13,14 @@ module Plomada
     OPENING_KINDS = %w[door window].freeze
     SWINGS = %w[in out].freeze
     HANDS = %w[left right].freeze
+    STAIR_KINDS = %w[straight l u].freeze
+    TURNS = %w[left right].freeze
     RECORD_VERSION = 1
     MAX_LENGTH_MM = 1_000_000.0 # 1 km: anything larger is a units mistake
 
     module_function
 
-    # Returns {'walls' => [...], 'openings' => [...], 'rooms' => [...], 'storey' => {...}}.
+    # Returns {'walls' => [...], 'openings' => [...], 'rooms' => [...], 'stairs' => [...], 'storey' => {...}}.
     def normalize(raw, config = CONFIG)
       raise InvalidParams, "plan must be an object, got #{type_name(raw)}" unless raw.is_a?(Hash)
 
@@ -34,7 +36,9 @@ module Plomada
       unique!(openings, 'openings')
       rooms = list(raw, 'rooms').each_with_index.map { |r, i| room(r, "rooms[#{i}]") }
       unique!(rooms, 'rooms')
-      { 'walls' => walls, 'openings' => openings, 'rooms' => rooms, 'storey' => storey }
+      stairs = list(raw, 'stairs').each_with_index.map { |st, i| stair(st, "stairs[#{i}]") }
+      unique!(stairs, 'stairs')
+      { 'walls' => walls, 'openings' => openings, 'rooms' => rooms, 'stairs' => stairs, 'storey' => storey }
     end
 
     def normalize_storey(raw, config)
@@ -128,6 +132,32 @@ module Plomada
         'number' => number,
         'at' => point(raw['at'], "#{path}.at"),
         'area' => raw['area'].nil? ? 0.0 : non_negative(raw['area'], "#{path}.area", MAX_LENGTH_MM**2)
+      }
+    end
+
+    # A stair record (AutoCAD MCP Pro): start is the midpoint of the bottom
+    # riser, direction_deg turns the stair frame, risers counts every rise from
+    # this floor to the next.
+    def stair(raw, path)
+      object!(raw, path)
+      version!(raw, path)
+      risers = raw['risers']
+      unless risers.is_a?(Integer) && risers >= 2
+        raise InvalidParams, "#{path}.risers must be a whole number of at least 2, got #{risers.inspect}"
+      end
+
+      {
+        'id' => text(raw['id'], "#{path}.id"),
+        'start' => point(raw['start'], "#{path}.start"),
+        'direction_deg' => number(raw['direction_deg'], "#{path}.direction_deg"),
+        'width' => positive(raw['width'], "#{path}.width"),
+        'risers' => risers,
+        'riser_height' => positive(raw['riser_height'], "#{path}.riser_height"),
+        'going' => positive(raw['going'], "#{path}.going"),
+        # Records carry the stair's kind as stair_kind ('kind' is the record kind, 'stair').
+        'kind' => choice(raw['stair_kind'] || (STAIR_KINDS.include?(raw['kind']) ? raw['kind'] : 'straight'),
+                         "#{path}.stair_kind", STAIR_KINDS),
+        'turn' => choice(raw.fetch('turn', 'left'), "#{path}.turn", TURNS)
       }
     end
 

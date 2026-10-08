@@ -86,13 +86,11 @@ def read_plan(path: str | Path, storey_height: float | None = None) -> DxfPlan:
             f"{p.name} holds no {APP_ID} records; export it from AutoCAD MCP Pro, whose arch_* tools write them"
         )
     warnings: list[str] = []
-    stairs = [r for r in recs if r["kind"] == "stair"]
-    if stairs:
-        warnings.append(f"{len(stairs)} stair record(s) skipped: this version builds no stairs")
     raw: dict[str, Any] = {
         "walls": [r for r in recs if r["kind"] == "wall"],
         "openings": [r for r in recs if r["kind"] == "opening"],
         "rooms": [r for r in recs if r["kind"] == "room"],
+        "stairs": [r for r in recs if r["kind"] == "stair"],
     }
     if storey_height is not None:
         raw["storey"] = {"height": storey_height}

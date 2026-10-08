@@ -4,27 +4,35 @@ require 'json'
 require_relative 'kit'
 require_relative 'builders'
 require_relative 'build'
+require_relative 'storeys'
 
 module Plomada
   module SU
-    # Tools that change a house already in the model. Each reads the plan back
-    # from the plomada attributes (no DXF), changes one record, re-solves the
-    # whole storey in pure Ruby (so a bad edit is refused before any change)
-    # and rebuilds only what the edit touches, as one undo step.
+    # Tools that change a house already in the model. Each reads the plan of
+    # one storey back from the plomada attributes (no DXF), changes one record,
+    # re-solves the whole storey in pure Ruby (so a bad edit is refused before
+    # any change) and rebuilds only what the edit touches, as one undo step.
+    # New geometry is built at z 0 and raised to the storey's elevation last.
     module Edit
       module_function
 
-      def current_plan(model, require_walls: true)
-        plan = PlanReader.read(model)
+      PARAMS_NOT_RECORD = %w[deadline_ms storey].freeze
+
+      def current_plan(model, storey, require_walls: true)
+        plan = PlanReader.read(model, storey)
         if require_walls && plan['walls'].empty?
-          raise InvalidParams, 'no Plomada walls in this model; build one with build_from_autocad or build_plan first'
+          raise InvalidParams, "no Plomada walls on storey #{storey}; build one with build_from_autocad or build_plan first"
         end
 
         plan
       end
 
-      def walls_group(model)
-        model.entities.grep(Sketchup::Group).find { |g| g.valid? && SU.kind(g) == 'walls' }
+      def walls_group(model, storey)
+        walls_groups(model).find { |g| Storeys.of(g) == storey }
+      end
+
+      def walls_groups(model)
+        model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.kind(g) == 'walls' }
       end
 
       def finishes(group)
@@ -42,93 +50,118 @@ module Plomada
         SU.set_attrs(group, 'finishes' => JSON.generate(finishes))
       end
 
-      # Solves the edited plan and returns the units that replace the walls group.
-      def rebuild(model, raw_plan)
-        settings = PlanReader.storey_settings(model)
-        raw = raw_plan.merge('storey' => { 'name' => settings['name'], 'height' => settings['height'] })
+      # Solves the edited plan and returns the units that replace the storey's
+      # walls group. The caller appends its own units, then raise_unit.
+      def rebuild(model, raw_plan, storey)
+        settings = PlanReader.storey_settings(model, storey)
+        raw = raw_plan.merge('storey' => { 'name' => storey, 'height' => settings['height'] })
         plan = Plan.normalize(raw)
         height = plan['storey']['height']
         layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: height)
-        old = walls_group(model)
-        state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [], finishes: finishes(old) }
-        units = [['remove old walls', -> { model.entities.erase_entities(old) if old&.valid? }]]
-        units.concat(Build.wall_units(model, plan, layout, plan['storey']['name'], height, state))
+        old = walls_group(model, storey)
+        state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [], finishes: finishes(old),
+                  elevation: settings.fetch('elevation', 0.0).to_f }
+        units = [['remove old walls', lambda {
+          model.entities.erase_entities(old) if old&.valid?
+          state[:before] = Storeys.snapshot(model)
+        }]]
+        units.concat(Build.wall_units(model, plan, layout, storey, height, state))
         units << ['strip internal faces', -> { Build.finish_walls(state, layout, plan, settings, height) }]
         [plan, layout, units, state]
       end
 
-      def summary(state)
-        { 'wall_faces' => state[:faces], 'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold] }
+      def raise_unit(model, state, storey)
+        ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
+      end
+
+      def summary(state, storey)
+        { 'storey' => storey, 'wall_faces' => state[:faces], 'internal_faces_removed' => state[:removed],
+          'manifold' => state[:manifold] }
       end
 
       def add_wall(params, ctx)
         model = ctx.model
-        plan = current_plan(model, require_walls: false)
-        wall = params.reject { |k, _| k == 'deadline_ms' }
+        storey = Storeys.resolve(model, params['storey'])
+        plan = current_plan(model, storey, require_walls: false)
+        wall = params.reject { |k, _| PARAMS_NOT_RECORD.include?(k) }
         if plan['walls'].any? { |w| w['id'] == wall['id'] }
-          raise InvalidParams, "wall #{wall['id'].inspect} already exists; ids are unique"
+          raise InvalidParams, "wall #{wall['id'].inspect} already exists on #{storey}; ids are unique per storey"
         end
 
         plan['walls'] << wall
-        _, _, units, state = rebuild(model, plan)
-        UnitJob.new('Plomada: add wall', units) { summary(state).merge('wall' => wall['id'], 'walls' => plan['walls'].size) }
+        _, _, units, state = rebuild(model, plan, storey)
+        units << raise_unit(model, state, storey)
+        UnitJob.new('Plomada: add wall', units) do
+          summary(state, storey).merge('wall' => wall['id'], 'walls' => plan['walls'].size)
+        end
       end
 
       def add_opening(params, ctx)
         model = ctx.model
-        plan = current_plan(model)
-        rec = params.reject { |k, _| k == 'deadline_ms' }
+        storey = Storeys.resolve(model, params['storey'])
+        plan = current_plan(model, storey)
+        rec = params.reject { |k, _| PARAMS_NOT_RECORD.include?(k) }
         if plan['openings'].any? { |o| o['id'] == rec['id'] }
-          raise InvalidParams, "opening #{rec['id'].inspect} already exists; ids are unique"
+          raise InvalidParams, "opening #{rec['id'].inspect} already exists on #{storey}; ids are unique per storey"
         end
 
         plan['openings'] << rec
-        norm, layout, units, state = rebuild(model, plan)
+        norm, layout, units, state = rebuild(model, plan, storey)
         frame = layout[:openings].find { |f| f[:id] == rec['id'] }
         stored = norm['openings'].find { |o| o['id'] == rec['id'] }
         units << ["opening #{rec['id']}", lambda {
           Openings.place(model, frame.merge(record: Build.opening_record(stored)))
         }]
-        UnitJob.new('Plomada: add opening', units) { summary(state).merge('opening' => rec['id']) }
+        units << raise_unit(model, state, storey)
+        UnitJob.new('Plomada: add opening', units) { summary(state, storey).merge('opening' => rec['id']) }
       end
 
       def move_opening(params, ctx)
         model = ctx.model
+        storey = Storeys.resolve(model, params['storey'])
         id = Plan.text(params['id'], 'id')
         offset = Plan.non_negative(params['offset'], 'offset')
-        plan = current_plan(model)
+        plan = current_plan(model, storey)
         rec = plan['openings'].find { |o| o['id'] == id }
-        raise InvalidParams, "id names opening #{id.inspect}, which is not in the model" unless rec
+        raise InvalidParams, "id names opening #{id.inspect}, which is not on storey #{storey}" unless rec
 
-        inst = SU.find_opening(model, id)
+        inst = SU.find_opening(model, id, storey)
         raise InvalidParams, "opening #{id} has a record but no component in the model; run build_plan again" unless inst
 
         rec['offset'] = offset
-        norm, layout, units, state = rebuild(model, plan)
+        norm, layout, units, state = rebuild(model, plan, storey)
         frame = layout[:openings].find { |f| f[:id] == id }
         stored = norm['openings'].find { |o| o['id'] == id }
-        units << ["opening #{id}", -> { Openings.move(model, inst, frame.merge(record: Build.opening_record(stored))) }]
+        units << ["opening #{id}", lambda {
+          Openings.move(model, inst, frame.merge(record: Build.opening_record(stored)), elevation: state[:elevation])
+        }]
+        units << raise_unit(model, state, storey)
         UnitJob.new('Plomada: move opening', units) do
-          summary(state).merge('opening' => id, 'offset' => offset, 'origin_mm' => frame[:origin].map { |v| v.round(1) })
+          summary(state, storey).merge('opening' => id, 'offset' => offset,
+                                       'origin_mm' => frame[:origin].map { |v| v.round(1) })
         end
       end
 
       def set_wall_height(params, ctx)
         model = ctx.model
+        storey = Storeys.resolve(model, params['storey'])
         id = Plan.text(params['id'], 'id')
         height = Plan.positive(params['height'], 'height')
-        plan = current_plan(model)
+        plan = current_plan(model, storey)
         wall = plan['walls'].find { |w| w['id'] == id }
-        raise InvalidParams, "id names wall #{id.inspect}, which is not in the model" unless wall
+        raise InvalidParams, "id names wall #{id.inspect}, which is not on storey #{storey}" unless wall
 
         wall['height'] = height
-        _, _, units, state = rebuild(model, plan)
-        UnitJob.new('Plomada: set wall height', units) { summary(state).merge('wall' => id, 'height' => height) }
+        _, _, units, state = rebuild(model, plan, storey)
+        units << raise_unit(model, state, storey)
+        UnitJob.new('Plomada: set wall height', units) { summary(state, storey).merge('wall' => id, 'height' => height) }
       end
 
       def add_slab(params, ctx)
         model = ctx.model
-        settings = PlanReader.storey_settings(model)
+        storey = Storeys.resolve(model, params['storey'])
+        settings = PlanReader.storey_settings(model, storey)
+        elevation = settings.fetch('elevation', 0.0).to_f
         thickness = params['thickness'].nil? ? CONFIG[:slab_thickness_mm] : Plan.positive(params['thickness'], 'thickness')
         outline = if params['outline']
                     pts = params['outline']
@@ -137,76 +170,91 @@ module Plomada
                     poly = pts.each_with_index.map { |p, i| Plan.point(p, "outline[#{i}]") }
                     Geometry.signed_area(poly).negative? ? poly.reverse : poly
                   else
-                    exterior(model, settings)[:points]
+                    exterior(model, settings, storey)[:points]
                   end
-        old = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.kind(g) == 'slab' }
+        wells = Storeys.wells(model, elevation, storey)
+        old = Storeys.entities(model, storey).select { |g| SU.kind(g) == 'slab' }
+        state = { elevation: elevation }
         units = [['floor slab', lambda {
           SU.ensure_materials(model)
           SU.ensure_tags(model)
-          model.entities.erase_entities(old) unless old.empty?
-          Slabs.slab(model, settings['name'], outline, thickness)
-        }]]
+          model.entities.erase_entities(old.select(&:valid?)) unless old.empty?
+          state[:before] = Storeys.snapshot(model)
+          Slabs.slab(model, storey, outline, thickness, holes: wells)
+        }], raise_unit(model, state, storey)]
         UnitJob.new('Plomada: add slab', units) do
-          { 'group' => SU.group_name(settings['name'], 'losa'), 'thickness' => thickness, 'outline' => outline }
+          { 'storey' => storey, 'group' => SU.group_name(storey, 'losa'), 'thickness' => thickness, 'outline' => outline,
+            'stair_wells' => wells.size }
         end
       end
 
       def add_roof(params, ctx)
         model = ctx.model
-        settings = PlanReader.storey_settings(model)
+        storey = Storeys.resolve(model, params['storey'])
+        settings = PlanReader.storey_settings(model, storey)
         kind = Plan.choice(params.fetch('kind', 'flat') || 'flat', 'kind', %w[flat gable])
         overhang = params['overhang'].nil? ? CONFIG[:roof_overhang_mm] : Plan.non_negative(params['overhang'], 'overhang')
         thickness = params['thickness'].nil? ? CONFIG[:roof_thickness_mm] : Plan.positive(params['thickness'], 'thickness')
         pitch = params['pitch'].nil? ? CONFIG[:gable_pitch_deg] : Plan.positive(params['pitch'], 'pitch')
         raise InvalidParams, "pitch must be less than 75, got #{Plan.fmt(pitch)}" if pitch >= 75
 
-        ext = exterior(model, settings)
+        ext = exterior(model, settings, storey)
         height = settings['height'].to_f
         gable = kind == 'gable' ? Geometry.gable_roof(ext[:points], height, overhang, pitch, thickness, ext[:thickness]) : nil
-        old = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.kind(g) == 'roof' }
+        old = Storeys.entities(model, storey).select { |g| SU.kind(g) == 'roof' }
+        state = { elevation: settings.fetch('elevation', 0.0).to_f }
         units = [["#{kind} roof", lambda {
           SU.ensure_materials(model)
           SU.ensure_tags(model)
-          model.entities.erase_entities(old) unless old.empty?
+          model.entities.erase_entities(old.select(&:valid?)) unless old.empty?
+          state[:before] = Storeys.snapshot(model)
           if gable
-            Slabs.gable_roof(model, settings['name'], gable, thickness, overhang, pitch)
+            Slabs.gable_roof(model, storey, gable, thickness, overhang, pitch)
           else
-            Slabs.flat_roof(model, settings['name'], ext[:points], height, thickness, overhang)
+            Slabs.flat_roof(model, storey, ext[:points], height, thickness, overhang)
           end
-        }]]
+        }], raise_unit(model, state, storey)]
         UnitJob.new('Plomada: add roof', units) do
-          { 'group' => SU.group_name(settings['name'], 'techo'), 'kind' => kind, 'overhang' => overhang,
+          { 'storey' => storey, 'group' => SU.group_name(storey, 'techo'), 'kind' => kind, 'overhang' => overhang,
             'thickness' => thickness, 'pitch' => kind == 'gable' ? pitch : nil }
         end
       end
 
-      def exterior(model, settings)
-        plan = Plan.normalize(current_plan(model).merge('storey' => { 'name' => settings['name'], 'height' => settings['height'] }))
+      def exterior(model, settings, storey)
+        raw = current_plan(model, storey).merge('storey' => { 'name' => storey, 'height' => settings['height'] })
+        plan = Plan.normalize(raw)
         layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: plan['storey']['height'])
         layout[:exterior] || raise(InvalidParams, 'the plan has no closed exterior wall to take the outline from; pass outline')
       end
 
       # Paints a wall (by id), an opening (by id), a named group or every
-      # top-level entity on a tag.
+      # top-level entity on a tag. Wall and opening ids are looked up on
+      # +storey+ when given, else on every storey (and must then be unique).
       def set_material(params, ctx)
         model = ctx.model
         target = Plan.text(params['target'], 'target')
         name = Plan.text(params['material'], 'material')
+        storey = params['storey'].nil? ? nil : Storeys.resolve(model, params['storey'])
         mat = SU.material(model, name) if CONFIG[:materials].key?(name) || model.materials[name]
         raise InvalidParams, "material #{name.inspect} is not in the model; Plomada materials are #{CONFIG[:materials].keys.join(', ')}" unless mat || CONFIG[:materials].key?(name)
 
-        group = walls_group(model)
-        wall_hit = group && group.entities.grep(Sketchup::Face).any? { |f| f.get_attribute(DICT, 'wall') == target }
-        opening = SU.find_opening(model, target)
+        groups = walls_groups(model).select { |g| storey.nil? || Storeys.of(g) == storey }
+        hits = groups.select { |g| g.entities.grep(Sketchup::Face).any? { |f| f.get_attribute(DICT, 'wall') == target } }
+        if hits.size > 1
+          raise InvalidParams, "wall #{target.inspect} is on storeys #{hits.map { |g| Storeys.of(g) }.join(', ')}; pass storey"
+        end
+
+        group = hits.first
+        opening = SU.find_opening(model, target, storey)
         named = model.entities.find { |e| (e.is_a?(Sketchup::Group) || e.is_a?(Sketchup::ComponentInstance)) && e.valid? && e.name == target }
         tagged = model.layers[target] ? model.entities.select { |e| e.valid? && e.layer.name == target } : []
-        unless wall_hit || opening || named || !tagged.empty?
+        unless group || opening || named || !tagged.empty?
           raise InvalidParams, "target #{target.inspect} matches no wall id, opening id, group name or tag in the model"
         end
 
         units = [["paint #{target}", lambda {
           m = SU.material(model, name)
-          if wall_hit
+          if group
             apply_finishes(group, finishes(group).merge(target => name))
           elsif opening
             opening.material = m
@@ -216,7 +264,7 @@ module Plomada
             tagged.each { |e| e.material = m if e.respond_to?(:material=) }
           end
         }]]
-        what = if wall_hit then 'wall' elsif opening then 'opening' elsif named then 'group' else 'tag' end
+        what = if group then 'wall' elsif opening then 'opening' elsif named then 'group' else 'tag' end
         UnitJob.new('Plomada: set material', units) do
           { 'target' => target, 'matched' => what, 'material' => name, 'count' => what == 'tag' ? tagged.size : 1 }
         end

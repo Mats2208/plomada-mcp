@@ -3,6 +3,7 @@
 require 'json'
 require_relative 'kit'
 require_relative 'builders'
+require_relative 'storeys'
 require_relative '../plan'
 require_relative '../jobs'
 require_relative '../geometry'
@@ -15,7 +16,8 @@ module Plomada
     # then each step does one small unit (one wall, one opening, one label).
     module Build
       ROOFS = %w[flat gable none].freeze
-      KINDS_REPLACED = %w[walls opening slab roof room].freeze
+      KINDS_REPLACED = %w[walls opening slab roof room stair].freeze
+      BLONDEL_MM = (600.0..650.0).freeze # 2R + G, comfortable stairs
 
       module_function
 
@@ -34,10 +36,19 @@ module Plomada
           'slab_thickness' => opt_num(raw, 'slab_thickness', config[:slab_thickness_mm]),
           'roof_thickness' => opt_num(raw, 'roof_thickness', config[:roof_thickness_mm]),
           'pitch' => opt_num(raw, 'pitch', config[:gable_pitch_deg]),
-          'fit_view' => opt_bool(raw, 'fit_view', true)
+          'fit_view' => opt_bool(raw, 'fit_view', true),
+          'storey' => raw['storey'].nil? ? nil : storey_name(raw['storey']),
+          'elevation' => raw['elevation'].nil? ? nil : Plan.number(raw['elevation'], 'options.elevation')
         }.tap do |o|
           raise InvalidParams, "options.pitch must be less than 75, got #{Plan.fmt(o['pitch'])}" if o['pitch'] >= 75
         end
+      end
+
+      def storey_name(value, path = 'options.storey')
+        name = Plan.text(value, path)
+        return name if name.match?(/\A[A-Za-z0-9_-]{1,16}\z/)
+
+        raise InvalidParams, "#{path} must be 1 to 16 letters, digits, - or _ (like N01), got #{value.inspect}"
       end
 
       def opt_num(raw, key, default, zero: false)
@@ -61,6 +72,7 @@ module Plomada
         if raw.is_a?(Hash) && opts['storey_height']
           raw['storey'] = (raw['storey'] || {}).merge('height' => opts['storey_height'])
         end
+        raw['storey'] = (raw['storey'] || {}).merge('name' => opts['storey']) if raw.is_a?(Hash) && opts['storey']
         plan = Plan.normalize(raw)
         height = plan['storey']['height']
         layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: height)
@@ -76,8 +88,26 @@ module Plomada
           Geometry.gable_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'],
                               outline[:thickness])
         end
+        stairs = plan['stairs'].map do |st|
+          lay = Geometry.stair_layout(st)
+          warnings.concat(stair_warnings(st, lay, height + opts['slab_thickness']))
+          [st, lay]
+        end
         { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, gable: gables.first, gables: gables,
-          warnings: warnings, height: height }
+          stairs: stairs, warnings: warnings, height: height }
+      end
+
+      # A stair should climb exactly one floor to floor (storey height plus the
+      # next slab) with comfortable steps; neither is a reason to refuse it.
+      def stair_warnings(stair, lay, floor_to_floor)
+        out = []
+        if (lay[:top] - floor_to_floor).abs > 5.0
+          out << "stair #{stair['id']} climbs #{Plan.fmt(lay[:top])} mm (#{stair['risers']} x #{Plan.fmt(stair['riser_height'])}) "                  "but floor to floor is #{Plan.fmt(floor_to_floor)} mm (storey height plus slab)"
+        end
+        unless BLONDEL_MM.cover?(lay[:blondel])
+          out << "stair #{stair['id']}: 2R + G = #{Plan.fmt(lay[:blondel])} mm, outside the comfortable 600 to 650"
+        end
+        out
       end
 
       # N00_losa for the first building, N00_losa_2, N00_losa_3 ... for the rest.
@@ -99,15 +129,20 @@ module Plomada
         plan = prep[:plan]
         layout = prep[:layout]
         storey = plan['storey']['name']
-        state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [] }
+        state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [], elevation: 0.0, wells: [],
+                  roof: opts['roof'] }
         units = []
         units << ['materials and tags', lambda {
           SU.ensure_tags(model)
           SU.ensure_materials(model)
-          erase_previous(model) if opts['replace']
+          place_storey(model, storey, opts, prep, state)
+          erase_previous(model, storey) if opts['replace']
+          state[:before] = Storeys.snapshot(model)
         }]
         units.concat(wall_units(model, plan, layout, storey, prep[:height], state))
-        units << ['strip internal faces', -> { finish_walls(state, layout, plan, opts, prep[:height]) }]
+        units << ['strip internal faces', lambda {
+          finish_walls(state, layout, plan, opts.merge('elevation' => state[:elevation]), prep[:height])
+        }]
         layout[:openings].each do |frame|
           units << ["opening #{frame[:id]}", lambda {
             Openings.place(model, frame.merge(record: opening_record(frame[:record])))
@@ -117,14 +152,17 @@ module Plomada
           next unless opts['slab']
 
           units << ["floor slab #{outline[:wall]}", lambda {
-            Slabs.slab(model, storey, outline[:points], opts['slab_thickness'], name: building_group(storey, 'losa', i))
-            state[:groups] << building_group(storey, 'losa', i)
+            name = building_group(storey, 'losa', i)
+            Slabs.slab(model, storey, outline[:points], opts['slab_thickness'], name: name, holes: state[:wells])
+            state[:groups] << name
           }]
         end
         prep[:outlines].each_with_index do |outline, i|
           next if opts['roof'] == 'none'
 
           units << ["#{opts['roof']} roof #{outline[:wall]}", lambda {
+            next if state[:roof] == 'none' # a storey already sits on top of this one
+
             name = building_group(storey, 'techo', i)
             if opts['roof'] == 'gable'
               Slabs.gable_roof(model, storey, prep[:gables][i], opts['roof_thickness'], opts['overhang'], opts['pitch'],
@@ -136,9 +174,16 @@ module Plomada
             state[:groups] << name
           }]
         end
+        prep[:stairs].each do |st, lay|
+          units << ["stair #{st['id']}", lambda {
+            g = Stairs.build(model, storey, st, lay)
+            state[:groups] << g.name
+          }]
+        end
         plan['rooms'].each do |room|
           units << ["room #{room['id']}", -> { Rooms.label(model, room_record(room)) }]
         end
+        units << ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
         units << ['view', -> { View.fit(model) if opts['fit_view'] }]
         UnitJob.new(label, units) do
           ops = plan['openings']
@@ -146,12 +191,41 @@ module Plomada
             'walls' => plan['walls'].size, 'openings' => ops.size,
             'doors' => ops.count { |o| o['opening_kind'] == 'door' },
             'windows' => ops.count { |o| o['opening_kind'] == 'window' },
-            'rooms' => plan['rooms'].size, 'wall_faces' => state[:faces],
+            'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'wall_faces' => state[:faces],
             'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold],
-            'groups' => state[:groups], 'storey_height' => prep[:height], 'roof' => opts['roof'],
+            'groups' => state[:groups], 'storey' => storey, 'elevation' => state[:elevation],
+            'storey_height' => prep[:height], 'roof' => state[:roof], 'stair_wells' => state[:wells].size,
             'warnings' => prep[:warnings], 'undo' => "one step: #{label}"
           }
         end
+      end
+
+      # Where the storey goes, decided when the job starts (before replace
+      # erases it): its elevation, the stair wells its slab needs, the roof of
+      # the storey it lands on (erased: the new slab takes its place), and no
+      # roof of its own when another storey already sits on top.
+      def place_storey(model, storey, opts, prep, state)
+        elevation = Storeys.elevation_for(model, storey, opts['elevation'], opts['slab_thickness'])
+        state[:elevation] = elevation
+        state[:wells] = Storeys.wells(model, elevation, storey)
+        under = Storeys.below(model, elevation, storey)
+        if under && (under['elevation'] + under['height']) >= elevation - opts['slab_thickness'] - 1.0
+          roofs = Storeys.entities(model, under['name']).select { |e| SU.kind(e) == 'roof' }
+          unless roofs.empty?
+            model.entities.erase_entities(roofs)
+            prep[:warnings] << "roof of #{under['name']} erased: #{storey} now sits on it"
+          end
+        end
+        above = Storeys.list(model).find { |s| s['name'] != storey && s['elevation'] > elevation + 1.0 }
+        return unless above
+
+        if state[:roof] != 'none'
+          state[:roof] = 'none'
+          prep[:warnings] << "no roof on #{storey}: #{above['name']} sits on top of it"
+        end
+        return if prep[:stairs].empty?
+
+        prep[:warnings] << "build #{above['name']} again to cut the stair wells of #{storey} into its slab"
       end
 
       def wall_units(model, plan, layout, storey, height, state)
@@ -174,6 +248,7 @@ module Plomada
         state[:removed] = Walls.strip_internal_faces(group, layout[:solids])
         state[:manifold] = group.manifold?
         settings = { 'name' => plan['storey']['name'], 'height' => height, 'roof' => opts['roof'],
+                     'elevation' => opts['elevation'].to_f,
                      'overhang' => opts['overhang'], 'slab' => opts['slab'],
                      'slab_thickness' => opts['slab_thickness'], 'roof_thickness' => opts['roof_thickness'],
                      'pitch' => opts['pitch'] }
@@ -182,9 +257,10 @@ module Plomada
         Edit.apply_finishes(group, finishes) unless finishes.empty?
       end
 
-      # replace: erases only top-level groups and components that carry a plomada attribute.
-      def erase_previous(model)
-        doomed = SU.plomada_entities(model).select { |e| KINDS_REPLACED.include?(SU.kind(e)) }
+      # replace: erases only this storey's top-level groups and components that
+      # carry a plomada attribute; other storeys stay.
+      def erase_previous(model, storey = Storeys.default_name)
+        doomed = Storeys.entities(model, storey).select { |e| KINDS_REPLACED.include?(SU.kind(e)) }
         model.entities.erase_entities(doomed) unless doomed.empty?
         doomed.size
       end

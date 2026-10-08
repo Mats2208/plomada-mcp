@@ -75,8 +75,33 @@ def test_build_from_autocad_sends_the_parsed_plan(run, tmp_path):
         "roof": "gable",
         "overhang": 400.0,
         "replace": True,
+        "storey": "N00",
     }
     assert result.structured_content["records"] == 19
+
+
+def test_upper_storey_and_edits_carry_the_storey(run, tmp_path):
+    fake = FakeExtension(
+        handlers={
+            "build_plan": lambda p: {"walls": 4, "warnings": []},
+            "move_opening": lambda p: {"opening": p["id"]},
+        },
+    )
+
+    async def body(client):
+        built = await client.call_tool(
+            "build_from_autocad", {"dxf_path": str(DXF), "storey": "N01", "elevation": 2950.0, "roof": "none"}
+        )
+        moved = await client.call_tool("move_opening", {"id": "W1", "offset": 500.0, "storey": "N01"})
+        bad = await client.call_tool("move_opening", {"id": "W1", "offset": 500.0, "storey": "piso 1"})
+        return built, moved, bad
+
+    built, moved, bad = run(_session(fake, tmp_path, body))
+    assert not built.is_error and not moved.is_error, (_text(built), _text(moved))
+    options = next(p for m, p in fake.seen if m == "build_plan")["options"]
+    assert (options["storey"], options["elevation"], options["roof"]) == ("N01", 2950.0, "none")
+    assert next(p for m, p in fake.seen if m == "move_opening") == {"id": "W1", "offset": 500.0, "storey": "N01"}
+    assert bad.is_error and "storey" in _text(bad)
 
 
 def test_bad_dxf_path_is_refused_before_sketchup(run, tmp_path):

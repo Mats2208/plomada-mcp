@@ -24,7 +24,9 @@ module Plomada
       r.read('list_entities') { |p, ctx| SU::Inspect.list_entities(ctx.model, p) }
       r.read('list_tags') { |_p, ctx| SU::Inspect.list_tags(ctx.model) }
       r.read('list_materials') { |_p, ctx| SU::Inspect.list_materials(ctx.model) }
-      r.read('get_plan') { |_p, ctx| SU::PlanReader.read(ctx.model) }
+      r.read('get_plan') do |p, ctx|
+        SU::PlanReader.read(ctx.model, p['storey'].nil? ? nil : SU::Storeys.resolve(ctx.model, p['storey']))
+      end
       r.read('capture_view', exclusive: true) { |p, ctx| SU::Capture.capture(ctx.model, p) }
     end
 

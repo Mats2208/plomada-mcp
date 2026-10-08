@@ -84,6 +84,21 @@ class Room(_Record):
         return str(value) if isinstance(value, int) and not isinstance(value, bool) else value
 
 
+class Stair(_Record):
+    """A stair from this floor up to the next (AutoCAD MCP Pro): start is the midpoint of the
+    bottom riser, direction_deg turns the stair frame, an L or U turns ``turn`` on a square landing."""
+
+    id: Annotated[str, Field(min_length=1)]
+    start: Point
+    direction_deg: Annotated[float, Field(allow_inf_nan=False, description="degrees, 0 = +x")] = 0.0
+    width: Annotated[float, Field(gt=0, le=MAX_MM, description="flight width, mm")]
+    risers: Annotated[int, Field(ge=2, le=200, description="every rise from this floor to the next")]
+    riser_height: Annotated[float, Field(gt=0, le=1_000, description="mm")]
+    going: Annotated[float, Field(gt=0, le=2_000, description="tread depth, mm")]
+    stair_kind: Literal["straight", "l", "u"] = "straight"
+    turn: Literal["left", "right"] = "left"
+
+
 class Storey(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -97,6 +112,7 @@ class Plan(BaseModel):
     walls: Annotated[list[Wall], Field(min_length=1)]
     openings: list[Opening] = Field(default_factory=list)
     rooms: list[Room] = Field(default_factory=list)
+    stairs: list[Stair] = Field(default_factory=list)
     storey: Storey | None = None
 
     @model_validator(mode="after")
@@ -104,6 +120,7 @@ class Plan(BaseModel):
         _unique("walls", [w.id for w in self.walls])
         _unique("openings", [o.id for o in self.openings])
         _unique("rooms", [r.id for r in self.rooms])
+        _unique("stairs", [s.id for s in self.stairs])
         ids = {w.id for w in self.walls}
         for i, o in enumerate(self.openings):
             if o.wall not in ids:
@@ -123,6 +140,7 @@ class Plan(BaseModel):
                 {"v": 1, "kind": "opening", **o.model_dump(mode="json", exclude={"v"})} for o in self.openings
             ],
             "rooms": [{"v": 1, "kind": "room", **r.model_dump(mode="json", exclude={"v"})} for r in self.rooms],
+            "stairs": [{"v": 1, "kind": "stair", **s.model_dump(mode="json", exclude={"v"})} for s in self.stairs],
         }
         if self.storey is not None:
             out["storey"] = self.storey.model_dump()

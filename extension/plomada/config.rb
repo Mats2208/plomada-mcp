@@ -74,7 +74,7 @@ module Plomada
     # --- model vocabulary ------------------------------------------------------
     dictionary: 'plomada',                 # attribute dictionary on everything Plomada makes
     storey_prefix: 'N00',                  # prefix of the storey groups
-    tags: %w[Muros Carpinterias Losas Ambientes Mobiliario Entorno Referencia_CAD],
+    tags: %w[Muros Carpinterias Losas Escaleras Ambientes Mobiliario Entorno Referencia_CAD],
     materials: {                           # name => [r, g, b] (0-255) and alpha (0-1)
       'MAT_hormigon' => [[150, 150, 146], 1.0],
       'MAT_revoque_blanco' => [[242, 240, 235], 1.0],

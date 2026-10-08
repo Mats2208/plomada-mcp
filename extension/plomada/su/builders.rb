@@ -3,6 +3,7 @@
 require 'json'
 require_relative 'kit'
 require_relative '../geometry'
+require_relative 'storeys'
 
 module Plomada
   module SU
@@ -118,10 +119,12 @@ module Plomada
                            'opening_kind' => frame[:kind], 'record' => JSON.generate(frame[:record]))
       end
 
-      def move(model, inst, frame)
+      # +elevation+ (mm): the storey the opening is on; frames are storey-local.
+      def move(model, inst, frame, elevation: 0.0)
         defn = definition(model, frame)
         inst.definition = defn unless inst.definition == defn
-        inst.transformation = transformation(frame)
+        lift = Geom::Transformation.translation(Geom::Vector3d.new(0, 0, elevation.to_f.mm))
+        inst.transformation = lift * transformation(frame)
         SU.set_attrs(inst, 'record' => JSON.generate(frame[:record]), 'wall' => frame[:wall])
       end
     end
@@ -130,11 +133,14 @@ module Plomada
     module Slabs
       module_function
 
-      def slab(model, storey, outline, thickness, name: SU.group_name(storey, 'losa'))
+      # +holes+: stair wells (plan rings, mm); one that is not wholly inside the
+      # outline belongs to another building and is left out.
+      def slab(model, storey, outline, thickness, name: SU.group_name(storey, 'losa'), holes: [])
         g = SU.group_on(model, model.entities, name, 'Losas', 'MAT_piso_porcelanato')
-        SU.add_faces(g.entities, SU.faces_from_loops(Geometry.prism_faces(outline, -thickness, 0.0)))
+        res = Geometry.slab_faces(outline, holes, -thickness, 0.0)
+        SU.add_faces(g.entities, res[:faces], always_build: true)
         SU.set_attrs(g, 'kind' => 'slab', 'storey' => storey, 'thickness' => thickness,
-                        'outline' => JSON.generate(outline))
+                        'outline' => JSON.generate(outline), 'wells' => holes.size - res[:skipped].size)
       end
 
       def flat_roof(model, storey, outline, wall_top, thickness, overhang, name: SU.group_name(storey, 'techo'))
@@ -176,17 +182,17 @@ module Plomada
       end
     end
 
-    # Reads the plan back from the plomada attributes in the model.
+    # Reads the plan of one storey back from the plomada attributes in the
+    # model; with no storey named, the lowest one.
     module PlanReader
       module_function
 
-      def read(model)
+      def read(model, storey = nil)
+        storey ||= Storeys.resolve(model, nil, required: false)
         walls = {}
-        storey = nil
         model.entities.grep(Sketchup::Group).each do |g|
-          next unless g.valid? && SU.kind(g) == 'walls'
+          next unless g.valid? && SU.kind(g) == 'walls' && Storeys.of(g) == storey
 
-          storey ||= g.get_attribute(DICT, 'storey')
           g.entities.grep(Sketchup::Face).each do |f|
             id = f.get_attribute(DICT, 'wall')
             next if id.nil? || walls.key?(id)
@@ -194,21 +200,23 @@ module Plomada
             walls[id] = SU.record(f)
           end
         end
-        openings = model.entities.grep(Sketchup::ComponentInstance).select { |i| i.valid? && SU.kind(i) == 'opening' }
-        rooms = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.kind(g) == 'room' }
-        settings = storey_settings(model)
+        mine = Storeys.entities(model, storey)
+        of_kind = ->(cls, kind) { mine.select { |e| e.is_a?(cls) && SU.kind(e) == kind } }
         {
           'walls' => walls.values.compact,
-          'openings' => openings.map { |i| SU.record(i) }.compact,
-          'rooms' => rooms.map { |g| SU.record(g) }.compact,
-          'storey' => settings
+          'openings' => of_kind.call(Sketchup::ComponentInstance, 'opening').map { |i| SU.record(i) }.compact,
+          'rooms' => of_kind.call(Sketchup::Group, 'room').map { |g| SU.record(g) }.compact,
+          'stairs' => of_kind.call(Sketchup::Group, 'stair').map { |g| SU.record(g) }.compact,
+          'storey' => storey_settings(model, storey),
+          'storeys' => Storeys.list(model)
         }
       end
 
-      def storey_settings(model)
-        g = model.entities.grep(Sketchup::Group).find { |x| x.valid? && SU.kind(x) == 'walls' }
+      def storey_settings(model, storey = nil)
+        storey ||= Storeys.resolve(model, nil, required: false)
+        g = model.entities.grep(Sketchup::Group).find { |x| x.valid? && SU.kind(x) == 'walls' && Storeys.of(x) == storey }
         raw = g&.get_attribute(DICT, 'storey_settings')
-        raw ? JSON.parse(raw) : { 'name' => CONFIG[:storey_prefix], 'height' => CONFIG[:storey_height_mm] }
+        raw ? JSON.parse(raw) : { 'name' => storey, 'height' => CONFIG[:storey_height_mm], 'elevation' => 0.0 }
       end
     end
   end

@@ -73,4 +73,33 @@ class TestPlan < Minitest::Test
     raw['walls'][0]['axis'] = [[0, 0], [1, 'x']]
     assert_equal 'walls[0].axis[1][1] must be a number, got "x"', assert_raises(Plomada::InvalidParams) { normalize(raw) }.message
   end
+
+  def stair_record(**over)
+    { 'v' => 1, 'kind' => 'stair', 'id' => 'S1', 'start' => [1000, 2000], 'direction_deg' => 90, 'width' => 1000,
+      'risers' => 17, 'riser_height' => 173.5, 'going' => 280, 'stair_kind' => 'l', 'turn' => 'right' }.merge(over)
+  end
+
+  def test_stair_record_reads_stair_kind_like_autocad_mcp_pro
+    raw = base
+    raw['stairs'] = [stair_record]
+    st = normalize(raw)['stairs'].first
+    assert_equal 'l', st['kind']
+    assert_equal 'right', st['turn']
+    assert_equal [1000.0, 2000.0], st['start']
+    assert_equal 17, st['risers']
+  end
+
+  def test_stair_needs_a_whole_number_of_risers
+    raw = base
+    raw['stairs'] = [stair_record('risers' => 16.5)]
+    err = assert_raises(Plomada::InvalidParams) { normalize(raw) }
+    assert_equal 'stairs[0].risers must be a whole number of at least 2, got 16.5', err.message
+  end
+
+  def test_unknown_stair_kind_is_refused
+    raw = base
+    raw['stairs'] = [stair_record('stair_kind' => 'spiral')]
+    err = assert_raises(Plomada::InvalidParams) { normalize(raw) }
+    assert_match(/\Astairs\[0\]\.stair_kind must be one of/, err.message)
+  end
 end

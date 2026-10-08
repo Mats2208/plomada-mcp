@@ -115,9 +115,11 @@ module Plomada
       model.entities.grep(Sketchup::Group).find { |g| g.valid? && g.name == name && plomada?(g) }
     end
 
-    def find_opening(model, id)
+    # The opening component +id+, on +storey+ when one is named (else the first).
+    def find_opening(model, id, storey = nil)
       model.entities.grep(Sketchup::ComponentInstance).find do |i|
-        i.valid? && kind(i) == 'opening' && i.get_attribute(DICT, 'id') == id
+        i.valid? && kind(i) == 'opening' && i.get_attribute(DICT, 'id') == id &&
+          (storey.nil? || (i.get_attribute(DICT, 'storey') || CONFIG[:storey_prefix]) == storey)
       end
     end
 

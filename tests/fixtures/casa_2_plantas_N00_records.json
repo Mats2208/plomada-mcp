@@ -1,0 +1,172 @@
+[
+ {
+  "axis": [
+   [
+    0.0,
+    0.0
+   ],
+   [
+    10000.0,
+    0.0
+   ],
+   [
+    10000.0,
+    8000.0
+   ],
+   [
+    0.0,
+    8000.0
+   ]
+  ],
+  "closed": true,
+  "id": "EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W1",
+  "kind": "opening",
+  "offset": 1000.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "V1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": null,
+  "id": "D1",
+  "kind": "opening",
+  "offset": 5000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "P1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 1000.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W2",
+  "kind": "opening",
+  "offset": 11000.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "V2",
+  "v": 1,
+  "wall": "EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W3",
+  "kind": "opening",
+  "offset": 24500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "V3",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W4",
+  "kind": "opening",
+  "offset": 31000.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "V4",
+  "v": 1,
+  "wall": "EXT",
+  "width": 1500.0
+ },
+ {
+  "axis": [
+   [
+    4000.0,
+    0.0
+   ],
+   [
+    4000.0,
+    8000.0
+   ]
+  ],
+  "closed": false,
+  "id": "P1",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 100.0,
+  "v": 1
+ },
+ {
+  "hand": "right",
+  "height": null,
+  "id": "D2",
+  "kind": "opening",
+  "offset": 2500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "P2",
+  "v": 1,
+  "wall": "P1",
+  "width": 900.0
+ },
+ {
+  "direction_deg": 0.0,
+  "going": 280.0,
+  "id": "S1",
+  "kind": "stair",
+  "riser_height": 173.5,
+  "risers": 17,
+  "stair_kind": "l",
+  "start": [
+   6200.0,
+   7300.0
+  ],
+  "turn": "right",
+  "v": 1,
+  "width": 1000.0
+ },
+ {
+  "area": 30030000.0,
+  "at": [
+   2000.0,
+   4000.0
+  ],
+  "id": "R1",
+  "kind": "room",
+  "name": "Living",
+  "number": "01",
+  "v": 1
+ },
+ {
+  "area": 45630000.0,
+  "at": [
+   6000.0,
+   2500.0
+  ],
+  "id": "R2",
+  "kind": "room",
+  "name": "Cocina",
+  "number": "02",
+  "v": 1
+ }
+]

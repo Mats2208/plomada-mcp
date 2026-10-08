@@ -113,3 +113,47 @@ def test_unseen_four_building_plan_parses_completely():
     assert sum(o.opening_kind == "door" for o in plan.openings) == 18
     assert sum(o.opening_kind == "window" for o in plan.openings) == 26
     assert {"L_EXT", "L_T1", "X_A", "X_B", "S_C"} <= {w.id for w in plan.walls}
+
+
+def _add_record(path, payload):
+    doc = ezdxf.readfile(path)
+    if APP_ID not in doc.appids:
+        doc.appids.new(APP_ID)
+    line = doc.modelspace().add_line((0, 0), (1, 0))
+    text = json.dumps(payload)
+    line.set_xdata(APP_ID, [(1000, text[i : i + 255]) for i in range(0, len(text), 255)])
+    doc.saveas(path)
+
+
+STAIR = {
+    "v": 1,
+    "kind": "stair",
+    "id": "S1",
+    "start": [1000.0, 1000.0],
+    "direction_deg": 0.0,
+    "width": 1000.0,
+    "risers": 17,
+    "riser_height": 173.5,
+    "going": 280.0,
+    "stair_kind": "l",
+    "turn": "left",
+}
+
+
+def test_stair_records_reach_the_plan_with_their_stair_kind(tmp_path):
+    path = tmp_path / "stair.dxf"
+    shutil.copy(DXF, path)
+    _add_record(path, STAIR)
+    parsed = read_plan(path)
+    assert not any("stair" in w for w in parsed.warnings)
+    (stair,) = parsed.plan.to_wire()["stairs"]
+    assert stair["kind"] == "stair" and stair["stair_kind"] == "l"
+    assert stair["start"] == [1000.0, 1000.0] and stair["risers"] == 17
+
+
+def test_a_stair_with_a_fractional_riser_count_is_refused_by_name(tmp_path):
+    path = tmp_path / "bad_stair.dxf"
+    shutil.copy(DXF, path)
+    _add_record(path, {**STAIR, "risers": 16.5})
+    with pytest.raises(DxfPlanError, match=r"stairs\[0\]\.risers"):
+        read_plan(path)

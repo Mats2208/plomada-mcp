@@ -28,17 +28,15 @@ module Plomada
       # doors, windows and glass panes among the opening components.
       def detail(model)
         groups = model.entities.grep(Sketchup::Group).select { |g| g.valid? && SU.plomada?(g) && SU.kind(g) != 'room' }
-        solids = begin
-          plan = Plan.normalize(PlanReader.read(model).merge('storey' => nil))
-          settings = PlanReader.storey_settings(model)
-          Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: settings['height'].to_f)[:solids]
-        rescue Plomada::Error
-          nil
-        end
         walls = groups.select { |g| SU.kind(g) == 'walls' }.map do |g|
-          internal = solids ? Walls.internal_faces(g.entities, g.transformation, solids, CONFIG[:probe_mm]).size : nil
-          { 'name' => g.name, 'manifold' => g.manifold?, 'faces' => g.entities.grep(Sketchup::Face).size,
-            'internal_faces' => internal }
+          storey = Storeys.of(g)
+          solids = storey_solids(model, storey)
+          # The solver works at z 0: probe the storey's walls lowered back there.
+          elevation = PlanReader.storey_settings(model, storey).fetch('elevation', 0.0).to_f
+          down = Geom::Transformation.translation(Geom::Vector3d.new(0, 0, -elevation.mm))
+          internal = solids ? Walls.internal_faces(g.entities, down * g.transformation, solids, CONFIG[:probe_mm]).size : nil
+          { 'name' => g.name, 'storey' => storey, 'manifold' => g.manifold?,
+            'faces' => g.entities.grep(Sketchup::Face).size, 'internal_faces' => internal }
         end
         openings = model.entities.grep(Sketchup::ComponentInstance).select { |i| i.valid? && SU.kind(i) == 'opening' }
         panes = openings.sum { |i| i.definition.entities.grep(Sketchup::Group).count { |p| p.name == 'vidrio' } }
@@ -47,8 +45,17 @@ module Plomada
           'doors' => openings.count { |i| i.get_attribute(DICT, 'opening_kind') == 'door' },
           'windows' => openings.count { |i| i.get_attribute(DICT, 'opening_kind') == 'window' },
           'opening_names' => openings.map(&:name).sort, 'glass_panes' => panes,
-          'rooms' => model.entities.grep(Sketchup::Group).count { |g| g.valid? && SU.kind(g) == 'room' }
+          'rooms' => model.entities.grep(Sketchup::Group).count { |g| g.valid? && SU.kind(g) == 'room' },
+          'stairs' => groups.count { |g| SU.kind(g) == 'stair' }, 'storeys' => Storeys.list(model)
         }
+      end
+
+      def storey_solids(model, storey)
+        plan = Plan.normalize(PlanReader.read(model, storey).merge('storey' => nil))
+        settings = PlanReader.storey_settings(model, storey)
+        Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: settings['height'].to_f)[:solids]
+      rescue Plomada::Error
+        nil
       end
 
       def summary(model)

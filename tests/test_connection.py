@@ -8,6 +8,7 @@ import time
 import pytest
 
 from conftest import FakeExtension, Reject, make_config
+from plomada_bridge import __version__
 from plomada_bridge.connection import SketchUpClient
 from plomada_bridge.errors import (
     NOT_RESPONDING,
@@ -38,7 +39,7 @@ def test_hello_then_read(run, tmp_path):
     assert run(_with(fake, tmp_path, body)) == {"protocol": 1, "queue_length": 0}
     method, params = fake.seen[0]
     assert method == "hello"
-    assert params["protocol"] == 1 and len(params["token"]) == 64 and params["client_version"] == "0.1.0"
+    assert params["protocol"] == 1 and len(params["token"]) == 64 and params["client_version"] == __version__
 
 
 def test_wrong_token_is_auth_error(run, tmp_path):

@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-10-08
+
+Fixes found by building four plans the 0.1.0 solver had never seen (`tests/fixtures/casos_prueba.dxf`): the reference
+house, an L-shaped house, a square split by an X crossing, and a six-room house.
+
+### Fixed
+
+- A partition that ends exactly on a mitred corner of another wall, for example the reflex corner of an L, was refused.
+  It now tees into the arm it crosses, and the shared mitre face stays manifold.
+- A plan with several buildings got a slab and a roof only on the largest one. Every building now gets its own:
+  `N00_losa` / `N00_techo` for the first, then `N00_losa_2` / `N00_techo_2` and so on.
+
+### Added
+
+- `tests/fixtures/casos_prueba.dxf` and its records: 15 walls, 44 openings and 12 rooms, covered by 4 minitest tests
+  and 1 pytest test. Totals: 75 minitest tests and 48 pytest tests.
+
+### Measured
+
+- The four-building plan builds in 2.7 s, with manifold walls and 0 internal faces.
+- The reference house is unchanged: 0.81 s, longest build tick 29 ms, all 16 e2e checks pass.
+
+### Known limits
+
+- The pure-Ruby solve for a whole plan runs inside a single tick. For the four-building plan that tick takes about
+  120 ms, over the 100 ms target. Solving building by building across ticks is planned for 0.2.
+
 ## [0.1.0] - 2026-10-08
 
 First release. The SketchUp extension and the Python bridge version together.
@@ -41,4 +68,5 @@ First release. The SketchUp extension and the Python bridge version together.
 - PBR is detected through `Sketchup::Material#metallic_factor=`, the method SketchUp 2025 actually has, not through
   `metalness=`.
 
+[0.1.1]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.0

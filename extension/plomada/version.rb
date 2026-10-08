@@ -3,6 +3,6 @@
 module Plomada
   # Single source of the extension version; scripts/build_rbz.py and the
   # bridge's pyproject.toml are checked against it by the test suites.
-  VERSION = '0.1.0'
+  VERSION = '0.1.1'
   EXTENSION_NAME = 'Plomada'
 end

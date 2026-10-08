@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08T03:30:04",
+  "date": "2026-10-08T04:01:24",
   "checks": {
     "protocol 1, pro, entities_build": true,
     "one undo removes the whole house": true,
@@ -31,9 +31,9 @@
     "sketchup_version": "25.0.571",
     "ruby_version": "3.2.2"
   },
-  "build_s_first": 0.81,
-  "build_s": 0.806,
-  "max_tick_ms_build": 32.64,
+  "build_s_first": 0.82,
+  "build_s": 0.814,
+  "max_tick_ms_build": 29.23,
   "build": {
     "walls": 4,
     "openings": 11,
@@ -49,24 +49,24 @@
       "N00_techo"
     ],
     "steps": 24,
-    "elapsed_ms": 742.8,
-    "max_step_ms": 4.3
+    "elapsed_ms": 749.4,
+    "max_step_ms": 6.8
   },
   "progress_notifications": 24,
   "captures": {
     "shaded": {
       "ms": 115.8,
       "bytes": 37710,
-      "path": "~/AppData/Local/Temp/plomada_capture_20261008_033007_286.jpg",
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_040127_564.jpg",
       "size": [
         1280,
         720
       ]
     },
     "lines_only": {
-      "ms": 100.4,
+      "ms": 123.3,
       "bytes": 71611,
-      "path": "~/AppData/Local/Temp/plomada_capture_20261008_033007_386.jpg",
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_040127_690.jpg",
       "size": [
         1280,
         720
@@ -76,11 +76,11 @@
   "fbx": {
     "path": "~/AppData/Local/Temp/plomada_e2e.fbx",
     "format": "fbx",
-    "bytes": 1056777,
-    "job_id": "j11",
+    "bytes": 1057132,
+    "job_id": "j6",
     "steps": 1,
-    "elapsed_ms": 1369.7,
-    "max_step_ms": 1369.5
+    "elapsed_ms": 1259.3,
+    "max_step_ms": 1259.1
   },
   "plan_diffs": [],
   "detail": {
@@ -115,6 +115,6 @@
     "glass_panes": 7,
     "rooms": 4
   },
-  "max_tick_ms_after_build": 1370.68,
+  "max_tick_ms_after_build": 1259.85,
   "passed": true
 }

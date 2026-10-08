@@ -65,16 +65,23 @@ module Plomada
         height = plan['storey']['height']
         layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: height)
         warnings = layout[:warnings].dup
-        outline = layout[:exterior]
-        gable = nil
-        if outline.nil?
+        outlines = layout[:exteriors] || [layout[:exterior]].compact
+        if outlines.empty?
           warnings << 'no closed exterior wall: slab and roof skipped' if opts['slab'] || opts['roof'] != 'none'
-        elsif opts['roof'] == 'gable'
-          gable = Geometry.gable_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'],
-                                      outline[:thickness])
         end
-        { plan: plan, layout: layout, outline: outline, gable: gable, warnings: warnings, height: height }
+        # One slab and one roof per building; a gable needs every footprint rectangular.
+        gables = outlines.map do |outline|
+          next nil unless opts['roof'] == 'gable'
+
+          Geometry.gable_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'],
+                              outline[:thickness])
+        end
+        { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, gable: gables.first, gables: gables,
+          warnings: warnings, height: height }
       end
+
+      # N00_losa for the first building, N00_losa_2, N00_losa_3 ... for the rest.
+      def building_group(storey, part, index) = SU.group_name(storey, part) + (index.zero? ? '' : "_#{index + 1}")
 
       def wall_record(w, height)
         { 'v' => 1, 'kind' => 'wall' }.merge(w).merge('height' => w['height'] || height)
@@ -106,20 +113,27 @@ module Plomada
             Openings.place(model, frame.merge(record: opening_record(frame[:record])))
           }]
         end
-        if prep[:outline] && opts['slab']
-          units << ['floor slab', lambda {
-            Slabs.slab(model, storey, prep[:outline][:points], opts['slab_thickness'])
-            state[:groups] << SU.group_name(storey, 'losa')
+        prep[:outlines].each_with_index do |outline, i|
+          next unless opts['slab']
+
+          units << ["floor slab #{outline[:wall]}", lambda {
+            Slabs.slab(model, storey, outline[:points], opts['slab_thickness'], name: building_group(storey, 'losa', i))
+            state[:groups] << building_group(storey, 'losa', i)
           }]
         end
-        if prep[:outline] && opts['roof'] != 'none'
-          units << ["#{opts['roof']} roof", lambda {
+        prep[:outlines].each_with_index do |outline, i|
+          next if opts['roof'] == 'none'
+
+          units << ["#{opts['roof']} roof #{outline[:wall]}", lambda {
+            name = building_group(storey, 'techo', i)
             if opts['roof'] == 'gable'
-              Slabs.gable_roof(model, storey, prep[:gable], opts['roof_thickness'], opts['overhang'], opts['pitch'])
+              Slabs.gable_roof(model, storey, prep[:gables][i], opts['roof_thickness'], opts['overhang'], opts['pitch'],
+                               name: name)
             else
-              Slabs.flat_roof(model, storey, prep[:outline][:points], prep[:height], opts['roof_thickness'], opts['overhang'])
+              Slabs.flat_roof(model, storey, outline[:points], prep[:height], opts['roof_thickness'], opts['overhang'],
+                              name: name)
             end
-            state[:groups] << SU.group_name(storey, 'techo')
+            state[:groups] << name
           }]
         end
         plan['rooms'].each do |room|

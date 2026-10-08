@@ -130,23 +130,23 @@ module Plomada
     module Slabs
       module_function
 
-      def slab(model, storey, outline, thickness)
-        g = SU.group_on(model, model.entities, SU.group_name(storey, 'losa'), 'Losas', 'MAT_piso_porcelanato')
+      def slab(model, storey, outline, thickness, name: SU.group_name(storey, 'losa'))
+        g = SU.group_on(model, model.entities, name, 'Losas', 'MAT_piso_porcelanato')
         SU.add_faces(g.entities, SU.faces_from_loops(Geometry.prism_faces(outline, -thickness, 0.0)))
         SU.set_attrs(g, 'kind' => 'slab', 'storey' => storey, 'thickness' => thickness,
                         'outline' => JSON.generate(outline))
       end
 
-      def flat_roof(model, storey, outline, wall_top, thickness, overhang)
-        g = SU.group_on(model, model.entities, SU.group_name(storey, 'techo'), 'Losas', 'MAT_hormigon')
+      def flat_roof(model, storey, outline, wall_top, thickness, overhang, name: SU.group_name(storey, 'techo'))
+        g = SU.group_on(model, model.entities, name, 'Losas', 'MAT_hormigon')
         roof = Geometry.flat_roof_outline(outline, overhang)
         SU.add_faces(g.entities, SU.faces_from_loops(Geometry.prism_faces(roof, wall_top, wall_top + thickness)))
         SU.set_attrs(g, 'kind' => 'roof', 'roof' => 'flat', 'storey' => storey, 'thickness' => thickness,
                         'overhang' => overhang)
       end
 
-      def gable_roof(model, storey, gable, thickness, overhang, pitch)
-        g = SU.group_on(model, model.entities, SU.group_name(storey, 'techo'), 'Losas', 'MAT_hormigon')
+      def gable_roof(model, storey, gable, thickness, overhang, pitch, name: SU.group_name(storey, 'techo'))
+        g = SU.group_on(model, model.entities, name, 'Losas', 'MAT_hormigon')
         sheet = SU.group_on(model, g.entities, 'cubierta', nil, nil)
         SU.add_faces(sheet.entities, SU.faces_from_loops(gable[:roof]))
         gable[:gables].each_with_index do |faces, i|

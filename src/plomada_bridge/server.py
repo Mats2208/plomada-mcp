@@ -593,10 +593,15 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     @exact_errors
     async def export_model(
         path: Annotated[str, Field(min_length=1, description="output file; the extension follows format")],
-        format: Annotated[Literal["skp", "fbx", "obj"], Field(description="skp needs a model saved at least once")],
+        format: Annotated[
+            Literal["skp", "fbx", "obj"],
+            Field(description="obj for Blender; skp needs a model saved at least once"),
+        ],
         ctx: Context,
     ) -> dict[str, Any]:
-        """Exports the model; a false return from SketchUp's exporter is reported as an error naming the format."""
+        """Exports the model; a false return from SketchUp's exporter is reported as an error naming the format.
+        For Blender use obj (one-sided, triangulated, materials by name): SketchUp writes FBX as ASCII, which
+        Blender's FBX importer refuses."""
         return await b.mutate("export_model", "export_model", {"path": path, "format": format}, ctx)
 
     # --- housekeeping -----------------------------------------------------------------------

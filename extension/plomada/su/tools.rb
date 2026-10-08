@@ -441,7 +441,8 @@ module Plomada
           ok = case format
                when 'skp' then model.save_copy(path)
                when 'fbx' then model.export(path, { show_summary: false })
-               else model.export(path, { show_summary: false, triangulated_faces: true, doublesided_faces: true,
+               # One-sided faces: two-sided ones come into Blender as a second, reversed copy of every face.
+               else model.export(path, { show_summary: false, triangulated_faces: true, doublesided_faces: false,
                                          edges: false, texture_maps: true })
                end
           unless ok

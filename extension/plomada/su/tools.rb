@@ -334,7 +334,12 @@ module Plomada
                         .select { |g| g.valid? && SU.kind(g) == 'site' && g.get_attribute(DICT, 'site_kind') == 'fence' }
                         .map { |g| JSON.parse(g.get_attribute(DICT, 'record')).then { |r| { points: r['points'], closed: r['closed'] } } }
           # A car is in the way as a whole; a tree only by its trunk, the eye may stand under the leaves.
-          boxes = model.entities.grep(Sketchup::ComponentInstance).select { |i| SU.kind(i) == 'site' }.map do |i|
+          # A part picked from a library file can come in as a Group rather than a component instance.
+          placed = model.entities.select do |e|
+            (e.is_a?(Sketchup::ComponentInstance) || e.is_a?(Sketchup::Group)) && SU.kind(e) == 'site' &&
+              e.get_attribute(DICT, 'site_kind') == 'object'
+          end
+          boxes = placed.map do |i|
             lo = SU.to_mm(i.bounds.min)[0, 2]
             hi = SU.to_mm(i.bounds.max)[0, 2]
             next [lo, hi] unless Site::TREES.include?(i.get_attribute(DICT, 'item').to_s.upcase)

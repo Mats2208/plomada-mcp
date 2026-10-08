@@ -4,7 +4,7 @@
 
 **Hand Claude an AutoCAD plan and get the exact 3D house in SketchUp: manifold walls, real openings, one Ctrl+Z.**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/Mats2208/plomada-mcp/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/Mats2208/plomada-mcp/actions/workflows/ci.yml)
 [![SketchUp](https://img.shields.io/badge/SketchUp-2025%20Pro-005F9E?style=flat-square)](https://www.sketchup.com)
 [![Python](https://img.shields.io/badge/python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
@@ -112,7 +112,7 @@ The script copies `plomada.rb` and `plomada\` into the SketchUp Plugins folder a
 It registers `plomada-mcp` for Claude Code with `claude mcp add -s user sketchup`. It also offers, y/n, to move the old
 Tarkiin plugin out of the Plugins folder. Restart SketchUp, reconnect the MCP, and call `status`.
 
-To install by hand instead, add [`plomada-0.1.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
+To install by hand instead, add [`plomada-0.1.1.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
 **Extensions > Extension Manager > Install Extension**, then register `.venv\Scripts\plomada-mcp.exe` as a stdio server.
 
 ## Use
@@ -168,7 +168,7 @@ source.
 
 | | Transport | Auth | Ruby eval by default | Architecture tools | Needs booleans | Tests |
 |---|---|---|---|---|---|---|
-| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, slab, roof, rooms, scenes | No | 68 minitest + 47 pytest, live e2e, bench |
+| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, slab, roof, rooms, scenes | No | 75 minitest + 48 pytest, live e2e, bench |
 | [Tarkiin/SketchUp-MCP](https://github.com/Tarkiin/SketchUp-MCP) | HTTP on 127.0.0.1:8080, served by Ruby threads, `Access-Control-Allow-Origin: *` | None | On | Primitives and `create_roof_truss` | No | None |
 | [zinin/sketchup-mcp2](https://github.com/zinin/sketchup-mcp2) | Length-prefixed JSON-RPC on TCP, UI-timer pump, stdio bridge | None (loopback default) | On (`eval_enabled: true`) | Woodworking joints | Yes (`Group#subtract`) | Ruby minitest + Python |
 | [PMajesty/sk_ruby_mcp](https://github.com/PMajesty/sk_ruby_mcp) | Streamable HTTP inside SketchUp, Host/Origin guard, no bridge | Optional, empty by default | On | Massing boxes, façade openings as glued components | No | Ruby test suite + soak scripts |
@@ -188,8 +188,8 @@ source.
 ## Development
 
 ```powershell
-uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (47 tests)
-ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (68 tests, Ruby 3.2, no SketchUp)
+uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (48 tests)
+ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (75 tests, Ruby 3.2, no SketchUp)
 uv run ruff check . ; uv run ruff format --check .
 uv run python scripts/e2e_house.py        # live: needs SketchUp with the extension
 uv run python scripts/bench.py --certify  # live: writes bench/results-<date>.json

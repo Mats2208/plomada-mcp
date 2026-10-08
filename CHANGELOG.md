@@ -4,6 +4,35 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-08
+
+The 2D drawings of the model, as a tool. Until now they needed `execute_ruby`.
+
+### Added
+
+- **`export_drawings`** writes the drawing set as PNG images, each in a textured (`_render`) and a black hidden-line
+  (`_linea`) style:
+  - a plan cut per storey and one of the whole plot;
+  - the four elevations, with trees, cars and fences hidden and what is buried cut away;
+  - sections, by default A-A and B-B through the middle, or your own;
+  - two axonometrics, one cut under the roof.
+
+  Every plan, elevation and section shares one scale (`px_per_m`). Camera, render settings, hidden entities and
+  section planes are restored, so nothing in the model changes. The framing is pure Ruby with its own tests.
+- **A test that compiles every file of the extension.** The SketchUp-only files are not loaded by the other tests, so
+  a syntax error there showed up only as "Some Extensions Failed to Load" in SketchUp.
+
+### Fixed
+
+- **`auto_scenes` steps around site objects that came in as groups.** A part picked from a library file (the outdoor
+  dining set) is placed as a Group, which the exterior camera clearance missed.
+
+### Measured
+
+- **Complete house.** 20 drawings at 110 px/m in 21–51 s. It takes longer with the site's trees visible in the
+  sections and axonometrics.
+- **Tests.** 27 tools; 136 minitest and 56 pytest tests.
+
 ## [0.3.0] - 2026-10-08
 
 Real furniture and the site around the house. The test was a complete house drawn with AutoCAD MCP Pro
@@ -181,6 +210,7 @@ First release. The SketchUp extension and the Python bridge version together.
 - PBR is detected through `Sketchup::Material#metallic_factor=`, the method SketchUp 2025 actually has, not through
   `metalness=`.
 
+[0.4.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.2.0
 [0.1.1]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.1

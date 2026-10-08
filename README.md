@@ -4,7 +4,7 @@
 
 **Hand Claude an AutoCAD plan and get the exact 3D house in SketchUp: manifold walls, real openings, stairs, roofs, furniture, one Ctrl+Z per call.**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/Mats2208/plomada-mcp/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/Mats2208/plomada-mcp/actions/workflows/ci.yml)
 [![SketchUp](https://img.shields.io/badge/SketchUp-2025%20Pro-005F9E?style=flat-square)](https://www.sketchup.com)
 [![Python](https://img.shields.io/badge/python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
@@ -73,7 +73,7 @@ pure Ruby, and builds the house inside a running SketchUp, one small step per UI
 | **Rooms** | 3D labels | Name, number and m² on the floor of each room. |
 | **Undo** | One Ctrl+Z per tool call | All steps of a job chain into one operation. A failed, expired or cancelled job reverts itself. |
 | **Edits** | Move, resize, add | `move_opening`, `set_wall_height`, `add_wall`, `add_opening` re-solve from the plan stored in the model, never from the DXF. |
-| **Views** | Captures, scenes, exports | `auto_scenes` makes a camera inside every room plus four eye-level exteriors and an aerial, with no coordinates. JPEG captures under 350 KB, scene images, skp / fbx / obj export. |
+| **Views** | Captures, scenes, exports | `auto_scenes` makes a camera inside every room plus four eye-level exteriors and an aerial, with no coordinates. `export_drawings` writes the 2D set: a plan cut per storey and of the whole plot, four elevations, sections and axonometrics, all at one px-per-metre scale. JPEG captures under 350 KB, scene images, skp / fbx / obj export. |
 
 Everything is in millimetres and named for the studio pipeline: groups `N00_muros`, `N01_losa`, `N01_techo`,
 `N00_escalera_S1`, `pileta_<id>`; tags `Muros`, `Carpinterias`, `Losas`, `Escaleras`, `Ambientes`, `Mobiliario`,
@@ -143,7 +143,7 @@ The script copies `plomada.rb` and `plomada\` into the SketchUp Plugins folder a
 It registers `plomada-mcp` for Claude Code with `claude mcp add -s user sketchup`. It also offers, y/n, to move the old
 Tarkiin plugin out of the Plugins folder. Restart SketchUp, reconnect the MCP, and call `status`.
 
-To install by hand instead, add [`plomada-0.3.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
+To install by hand instead, add [`plomada-0.4.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
 **Extensions > Extension Manager > Install Extension**, then register `.venv\Scripts\plomada-mcp.exe` as a stdio server.
 
 ## Use
@@ -205,12 +205,31 @@ add_terrain margin=2000                  -> Terreno 35 x 36 m, 3 holes (house, g
 auto_scenes                              -> 5 rooms, 4 exteriors inside the fence, 1 aerial
 ```
 
+### Drawings
+
+`export_drawings(dir)` writes the drawing set of the model as PNG, in a textured `_render` and a black `_linea` style.
+Every plan, elevation and section shares one scale (`px_per_m`, default 110), so they lay out side by side:
+
+- **Plans:** `planta_N00`... cut at `cut_height` above each floor, plus `planta_lote` for the whole plot.
+- **Elevations:** the four, with trees, cars and fences hidden and anything buried cut away.
+- **Sections:** `corte_AA`, `corte_BB` by default through the middle, or your own `{name, axis, at, look}`.
+- **Axonometrics:** `axonometria` and `axonometria_seccionada`, the second cut under the roof.
+
+Nothing in the model changes, and it takes about 50 s for the complete house.
+
+<table>
+<tr>
+<td width="40%"><img src="docs/img/dibujo_axonometria.jpg" alt="axonometria_seccionada: the complete house cut under the roof, furniture and site visible" width="100%"/></td>
+<td width="60%"><img src="docs/img/dibujo_corte.jpg" alt="corte_AA through the living, the deck and the sunk pool" width="100%"/></td>
+</tr>
+</table>
+
 | Kind | Tools |
 |---|---|
 | **Read-only** | `status` · `model_info` · `list_entities` · `list_tags` · `list_materials` · `get_plan` · `capture_view` · `job_status` |
 | **Build** | `build_from_autocad` · `build_plan` |
 | **Edit** | `add_wall` · `add_opening` · `move_opening` · `set_wall_height` · `add_slab` · `add_roof` · `add_terrain` · `set_material` |
-| **Scenes and exports** | `auto_scenes` · `create_scene` · `export_scene_images` · `export_model` |
+| **Scenes and exports** | `auto_scenes` · `create_scene` · `export_scene_images` · `export_drawings` · `export_model` |
 | **Housekeeping** | `reset_plomada` · `undo` · `job_cancel` · `execute_ruby` (off by default) |
 
 Every length is millimetres. Edits and `get_plan` take `storey`; with several storeys in the model and none named they
@@ -251,7 +270,7 @@ source.
 
 | | Transport | Auth | Ruby eval by default | Architecture tools | Needs booleans | Tests |
 |---|---|---|---|---|---|---|
-| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, storeys, stairs, slabs, flat/gable/hip roofs, furniture from a model library, site (paving, pools, fences, trees, cars), terrain, rooms, automatic scenes | No | 128 minitest + 55 pytest, live e2e, bench |
+| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, storeys, stairs, slabs, flat/gable/hip roofs, furniture from a model library, site (paving, pools, fences, trees, cars), terrain, rooms, automatic scenes, 2D drawings | No | 136 minitest + 56 pytest, live e2e, bench |
 | [Tarkiin/SketchUp-MCP](https://github.com/Tarkiin/SketchUp-MCP) | HTTP on 127.0.0.1:8080, served by Ruby threads, `Access-Control-Allow-Origin: *` | None | On | Primitives and `create_roof_truss` | No | None |
 | [zinin/sketchup-mcp2](https://github.com/zinin/sketchup-mcp2) | Length-prefixed JSON-RPC on TCP, UI-timer pump, stdio bridge | None (loopback default) | On (`eval_enabled: true`) | Woodworking joints | Yes (`Group#subtract`) | Ruby minitest + Python |
 | [PMajesty/sk_ruby_mcp](https://github.com/PMajesty/sk_ruby_mcp) | Streamable HTTP inside SketchUp, Host/Origin guard, no bridge | Optional, empty by default | On | Massing boxes, façade openings as glued components | No | Ruby test suite + soak scripts |
@@ -283,8 +302,8 @@ source.
 ## Development
 
 ```powershell
-uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (55 tests)
-ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (128 tests, Ruby 3.2, no SketchUp)
+uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (56 tests)
+ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (136 tests, Ruby 3.2, no SketchUp)
 uv run ruff check . ; uv run ruff format --check .
 uv run python scripts/e2e_house.py        # live: needs SketchUp with the extension
 uv run python scripts/bench.py --certify  # live: writes bench/results-<date>.json

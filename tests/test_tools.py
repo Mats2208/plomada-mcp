@@ -52,7 +52,7 @@ def test_tool_list_and_annotations(run, tmp_path):
         assert tools[name].annotations.destructive_hint is True
     props = tools["build_from_autocad"].input_schema["properties"]
     assert props["storey_height"]["default"] == 2800.0 and "mm" in props["storey_height"]["description"]
-    assert props["roof"]["enum"] == ["flat", "gable", "none"]
+    assert props["roof"]["enum"] == ["flat", "gable", "hip", "none"]
 
 
 def test_build_from_autocad_sends_the_parsed_plan(run, tmp_path):

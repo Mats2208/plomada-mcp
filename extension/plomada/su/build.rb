@@ -15,7 +15,7 @@ module Plomada
     # invalid plan is refused with -32004 before anything touches the model;
     # then each step does one small unit (one wall, one opening, one label).
     module Build
-      ROOFS = %w[flat gable none].freeze
+      ROOFS = %w[flat gable hip none].freeze
       KINDS_REPLACED = %w[walls opening slab roof room stair].freeze
       BLONDEL_MM = (600.0..650.0).freeze # 2R + G, comfortable stairs
 
@@ -81,20 +81,27 @@ module Plomada
         if outlines.empty?
           warnings << 'no closed exterior wall: slab and roof skipped' if opts['slab'] || opts['roof'] != 'none'
         end
-        # One slab and one roof per building; a gable needs every footprint rectangular.
-        gables = outlines.map do |outline|
-          next nil unless opts['roof'] == 'gable'
-
-          Geometry.gable_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'],
-                              outline[:thickness])
-        end
+        # One slab and one roof per building. A gable needs every footprint
+        # rectangular; a hip takes any simple outline.
+        pitched = outlines.map { |outline| pitched_roof(opts['roof'], outline, height, opts) }
         stairs = plan['stairs'].map do |st|
           lay = Geometry.stair_layout(st)
           warnings.concat(stair_warnings(st, lay, height + opts['slab_thickness']))
           [st, lay]
         end
-        { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, gable: gables.first, gables: gables,
+        { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, pitched: pitched,
           stairs: stairs, warnings: warnings, height: height }
+      end
+
+      # The solved gable or hip roof of one building, nil for flat or none.
+      def pitched_roof(kind, outline, height, opts)
+        case kind
+        when 'gable'
+          Geometry.gable_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'],
+                              outline[:thickness])
+        when 'hip'
+          Geometry.hip_roof(outline[:points], height, opts['overhang'], opts['pitch'], opts['roof_thickness'])
+        end
       end
 
       # A stair should climb exactly one floor to floor (storey height plus the
@@ -164,9 +171,9 @@ module Plomada
             next if state[:roof] == 'none' # a storey already sits on top of this one
 
             name = building_group(storey, 'techo', i)
-            if opts['roof'] == 'gable'
-              Slabs.gable_roof(model, storey, prep[:gables][i], opts['roof_thickness'], opts['overhang'], opts['pitch'],
-                               name: name)
+            if prep[:pitched][i]
+              Slabs.pitched_roof(model, storey, prep[:pitched][i], opts['roof'], opts['roof_thickness'], opts['overhang'],
+                                 opts['pitch'], name: name)
             else
               Slabs.flat_roof(model, storey, outline[:points], prep[:height], opts['roof_thickness'], opts['overhang'],
                               name: name)

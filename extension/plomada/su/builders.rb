@@ -151,15 +151,17 @@ module Plomada
                         'overhang' => overhang)
       end
 
-      def gable_roof(model, storey, gable, thickness, overhang, pitch, name: SU.group_name(storey, 'techo'))
+      # A gable (with its end walls) or a hip roof: +roof+ is what
+      # Geometry.gable_roof or Geometry.hip_roof returned.
+      def pitched_roof(model, storey, roof, kind, thickness, overhang, pitch, name: SU.group_name(storey, 'techo'))
         g = SU.group_on(model, model.entities, name, 'Losas', 'MAT_hormigon')
         sheet = SU.group_on(model, g.entities, 'cubierta', nil, nil)
-        SU.add_faces(sheet.entities, SU.faces_from_loops(gable[:roof]))
-        gable[:gables].each_with_index do |faces, i|
+        SU.add_faces(sheet.entities, SU.faces_from_loops(roof[:roof]))
+        roof[:gables].each_with_index do |faces, i|
           end_wall = SU.group_on(model, g.entities, "hastial_#{i + 1}", nil, 'MAT_revoque_blanco')
           SU.add_faces(end_wall.entities, SU.faces_from_loops(faces))
         end
-        SU.set_attrs(g, 'kind' => 'roof', 'roof' => 'gable', 'storey' => storey, 'thickness' => thickness,
+        SU.set_attrs(g, 'kind' => 'roof', 'roof' => kind, 'storey' => storey, 'thickness' => thickness,
                         'overhang' => overhang, 'pitch' => pitch)
       end
     end

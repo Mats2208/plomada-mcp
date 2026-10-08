@@ -192,7 +192,7 @@ module Plomada
         model = ctx.model
         storey = Storeys.resolve(model, params['storey'])
         settings = PlanReader.storey_settings(model, storey)
-        kind = Plan.choice(params.fetch('kind', 'flat') || 'flat', 'kind', %w[flat gable])
+        kind = Plan.choice(params.fetch('kind', 'flat') || 'flat', 'kind', %w[flat gable hip])
         overhang = params['overhang'].nil? ? CONFIG[:roof_overhang_mm] : Plan.non_negative(params['overhang'], 'overhang')
         thickness = params['thickness'].nil? ? CONFIG[:roof_thickness_mm] : Plan.positive(params['thickness'], 'thickness')
         pitch = params['pitch'].nil? ? CONFIG[:gable_pitch_deg] : Plan.positive(params['pitch'], 'pitch')
@@ -200,7 +200,7 @@ module Plomada
 
         ext = exterior(model, settings, storey)
         height = settings['height'].to_f
-        gable = kind == 'gable' ? Geometry.gable_roof(ext[:points], height, overhang, pitch, thickness, ext[:thickness]) : nil
+        pitched = Build.pitched_roof(kind, ext, height, 'overhang' => overhang, 'pitch' => pitch, 'roof_thickness' => thickness)
         old = Storeys.entities(model, storey).select { |g| SU.kind(g) == 'roof' }
         state = { elevation: settings.fetch('elevation', 0.0).to_f }
         units = [["#{kind} roof", lambda {
@@ -208,15 +208,15 @@ module Plomada
           SU.ensure_tags(model)
           model.entities.erase_entities(old.select(&:valid?)) unless old.empty?
           state[:before] = Storeys.snapshot(model)
-          if gable
-            Slabs.gable_roof(model, storey, gable, thickness, overhang, pitch)
+          if pitched
+            Slabs.pitched_roof(model, storey, pitched, kind, thickness, overhang, pitch)
           else
             Slabs.flat_roof(model, storey, ext[:points], height, thickness, overhang)
           end
         }], raise_unit(model, state, storey)]
         UnitJob.new('Plomada: add roof', units) do
           { 'storey' => storey, 'group' => SU.group_name(storey, 'techo'), 'kind' => kind, 'overhang' => overhang,
-            'thickness' => thickness, 'pitch' => kind == 'gable' ? pitch : nil }
+            'thickness' => thickness, 'pitch' => kind == 'flat' ? nil : pitch }
         end
       end
 

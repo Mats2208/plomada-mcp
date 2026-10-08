@@ -270,7 +270,8 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         ] = cfg.storey_height_mm,
         slab: Annotated[bool, Field(description="build the 150 mm floor slab under the exterior wall")] = True,
         roof: Annotated[
-            Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")
+            Literal["flat", "gable", "hip", "none"],
+            Field(description="gable needs a rectangular footprint; hip takes any outline (L, T, U...)"),
         ] = "flat",
         overhang: Annotated[
             float, Field(ge=0, le=3_000, description="roof overhang past the outer face, mm")
@@ -322,7 +323,8 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         ] = cfg.storey_height_mm,
         slab: Annotated[bool, Field(description="build the floor slab under the exterior wall")] = True,
         roof: Annotated[
-            Literal["flat", "gable", "none"], Field(description="gable needs a rectangular footprint")
+            Literal["flat", "gable", "hip", "none"],
+            Field(description="gable needs a rectangular footprint; hip takes any outline (L, T, U...)"),
         ] = "flat",
         overhang: Annotated[float, Field(ge=0, le=3_000, description="roof overhang, mm")] = cfg.overhang_mm,
         replace: Annotated[bool, Field(description="first erase what Plomada built before on this storey")] = True,
@@ -466,14 +468,17 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     @exact_errors
     async def add_roof(
         ctx: Context,
-        kind: Annotated[Literal["flat", "gable"], Field(description="gable needs a rectangular footprint")] = "flat",
+        kind: Annotated[
+            Literal["flat", "gable", "hip"],
+            Field(description="gable needs a rectangular footprint; hip takes any outline (L, T, U...)"),
+        ] = "flat",
         overhang: Annotated[float, Field(ge=0, le=3_000, description="mm past the outer face")] = cfg.overhang_mm,
         thickness: Annotated[float, Field(gt=0, le=2_000, description="mm")] = cfg.roof_thickness_mm,
-        pitch: Annotated[float, Field(gt=0, lt=75, description="gable slope, degrees")] = cfg.gable_pitch_deg,
+        pitch: Annotated[float, Field(gt=0, lt=75, description="gable or hip slope, degrees")] = cfg.gable_pitch_deg,
         storey: StoreyName = None,
     ) -> dict[str, Any]:
-        """Builds (or replaces) a storey's roof (N00_techo...): a flat slab on the wall tops, or a gable with
-        its ridge along the longer side."""
+        """Builds (or replaces) a storey's roof (N00_techo...): a flat slab on the wall tops, a gable with its
+        ridge along the longer side, or a hip roof with one slope per eave (ridges, hips and valleys)."""
         params = {"kind": kind, "overhang": overhang, "thickness": thickness, "pitch": pitch}
         return await b.mutate("add_roof", "add_roof", with_storey(params, storey), ctx)
 

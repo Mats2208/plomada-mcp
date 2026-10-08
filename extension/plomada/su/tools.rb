@@ -289,7 +289,10 @@ module Plomada
         pages.each do |page|
           units << ["image #{page.name}", lambda {
             view.camera = page.camera
-            mode = style ? Capture::STYLES[style] : (page.rendering_options && page.use_rendering_options? ? page.rendering_options['RenderMode'] : saved[1])
+            # The scene's own style (stored by create_scene) unless overridden;
+            # a scene Plomada did not make keeps the current render mode.
+            page_style = page.get_attribute(DICT, 'style')
+            mode = Capture::STYLES[style || page_style] || saved[1]
             ro['RenderMode'] = mode if mode && ro['RenderMode'] != mode
             path = File.join(dir, "#{page.name.gsub(/[^\w\-. ]/, '_')}.#{format}")
             ok = Capture.write(view, path, width, height, true, 0.9)

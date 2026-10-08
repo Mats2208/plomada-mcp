@@ -75,15 +75,7 @@ module Plomada
         raw['storey'] = (raw['storey'] || {}).merge('name' => opts['storey']) if raw.is_a?(Hash) && opts['storey']
         plan = Plan.normalize(raw)
         height = plan['storey']['height']
-        layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: height)
-        warnings = layout[:warnings].dup
-        outlines = layout[:exteriors] || [layout[:exterior]].compact
-        if outlines.empty?
-          warnings << 'no closed exterior wall: slab and roof skipped' if opts['slab'] || opts['roof'] != 'none'
-        end
-        # One slab and one roof per building. A gable needs every footprint
-        # rectangular; a hip takes any simple outline.
-        pitched = outlines.map { |outline| pitched_roof(opts['roof'], outline, height, opts) }
+        warnings = []
         known, unknown = plan['furniture'].partition { |f| Geometry.furniture_item?(f['item']) }
         unless unknown.empty?
           warnings << "#{unknown.size} furniture block(s) skipped, no massing for: #{unknown.map { |f| f['item'] }.uniq.join(', ')}"
@@ -93,8 +85,34 @@ module Plomada
           warnings.concat(stair_warnings(st, lay, height + opts['slab_thickness']))
           [st, lay]
         end
-        { plan: plan, layout: layout, outline: outlines.first, outlines: outlines, pitched: pitched,
-          stairs: stairs, furniture: known, warnings: warnings, height: height }
+        { plan: plan, buildings: Geometry.building_plans(plan['walls'], plan['openings']), stairs: stairs,
+          furniture: known, warnings: warnings, height: height }
+      end
+
+      # One job step per building: the wall solve is the costly part, and a
+      # plan of several buildings would otherwise hold the UI in one tick.
+      # These steps change nothing, so a plan the solver refuses leaves the
+      # model as it was.
+      def solve_units(buildings, height, state)
+        state[:layouts] = []
+        buildings.each_with_index.map do |(ws, os), i|
+          ["solve building #{i + 1} of #{buildings.size}",
+           -> { state[:layouts] << Geometry::WallSolver.new(ws, os, storey_height: height).solve }]
+        end
+      end
+
+      # Merges the buildings' layouts into +prep+ and solves the roofs: one
+      # slab and one roof per building. A gable needs every footprint
+      # rectangular; a hip takes any simple outline.
+      def solved!(prep, layouts, opts)
+        layout = Geometry.merge_layouts(layouts)
+        prep[:warnings].concat(layout[:warnings])
+        outlines = layout[:exteriors] || [layout[:exterior]].compact
+        if outlines.empty? && (opts['slab'] || opts['roof'] != 'none')
+          prep[:warnings] << 'no closed exterior wall: slab and roof skipped'
+        end
+        pitched = outlines.map { |outline| pitched_roof(opts['roof'], outline, prep[:height], opts) }
+        prep.merge!(layout: layout, outlines: outlines, outline: outlines.first, pitched: pitched)
       end
 
       # The solved gable or hip roof of one building, nil for flat or none.
@@ -138,10 +156,35 @@ module Plomada
         prep = prepare(params['plan'], opts)
         model = ctx.model
         plan = prep[:plan]
-        layout = prep[:layout]
         storey = plan['storey']['name']
         state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [], elevation: 0.0, wells: [],
                   roof: opts['roof'] }
+        units = solve_units(prep[:buildings], prep[:height], state)
+        at = units.size
+        units << ['plan solved', lambda {
+          solved!(prep, state[:layouts], opts)
+          units.insert(at + 1, *model_units(model, prep, opts, state, storey))
+        }]
+        UnitJob.new(label, units) do
+          ops = plan['openings']
+          {
+            'walls' => plan['walls'].size, 'openings' => ops.size,
+            'doors' => ops.count { |o| o['opening_kind'] == 'door' },
+            'windows' => ops.count { |o| o['opening_kind'] == 'window' },
+            'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'furniture' => prep[:furniture].size,
+            'wall_faces' => state[:faces],
+            'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold],
+            'groups' => state[:groups], 'storey' => storey, 'elevation' => state[:elevation],
+            'storey_height' => prep[:height], 'roof' => state[:roof], 'stair_wells' => state[:wells].size,
+            'warnings' => prep[:warnings], 'undo' => "one step: #{label}"
+          }
+        end
+      end
+
+      # The steps that build the storey once its plan is solved.
+      def model_units(model, prep, opts, state, storey)
+        plan = prep[:plan]
+        layout = prep[:layout]
         units = []
         units << ['materials and tags', lambda {
           SU.ensure_tags(model)
@@ -199,20 +242,7 @@ module Plomada
         end
         units << ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
         units << ['view', -> { View.fit(model) if opts['fit_view'] }]
-        UnitJob.new(label, units) do
-          ops = plan['openings']
-          {
-            'walls' => plan['walls'].size, 'openings' => ops.size,
-            'doors' => ops.count { |o| o['opening_kind'] == 'door' },
-            'windows' => ops.count { |o| o['opening_kind'] == 'window' },
-            'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'furniture' => prep[:furniture].size,
-            'wall_faces' => state[:faces],
-            'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold],
-            'groups' => state[:groups], 'storey' => storey, 'elevation' => state[:elevation],
-            'storey_height' => prep[:height], 'roof' => state[:roof], 'stair_wells' => state[:wells].size,
-            'warnings' => prep[:warnings], 'undo' => "one step: #{label}"
-          }
-        end
+        units
       end
 
       # Where the storey goes, decided when the job starts (before replace

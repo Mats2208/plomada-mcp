@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08T04:01:24",
+  "date": "2026-10-08T09:12:42",
   "checks": {
     "protocol 1, pro, entities_build": true,
     "one undo removes the whole house": true,
@@ -18,9 +18,9 @@
     "every wall group manifold": true,
     "zero internal faces": true
   },
-  "tool_count": 24,
+  "tool_count": 26,
   "status": {
-    "server_version": "0.1.0",
+    "server_version": "0.1.1",
     "protocol": 1,
     "capabilities": {
       "pro": true,
@@ -31,9 +31,9 @@
     "sketchup_version": "25.0.571",
     "ruby_version": "3.2.2"
   },
-  "build_s_first": 0.82,
-  "build_s": 0.814,
-  "max_tick_ms_build": 29.23,
+  "build_s_first": 0.909,
+  "build_s": 0.909,
+  "max_tick_ms_build": 29.49,
   "build": {
     "walls": 4,
     "openings": 11,
@@ -48,25 +48,25 @@
       "N00_losa",
       "N00_techo"
     ],
-    "steps": 24,
-    "elapsed_ms": 749.4,
-    "max_step_ms": 6.8
+    "steps": 27,
+    "elapsed_ms": 844.9,
+    "max_step_ms": 28.8
   },
-  "progress_notifications": 24,
+  "progress_notifications": 27,
   "captures": {
     "shaded": {
-      "ms": 115.8,
-      "bytes": 37710,
-      "path": "~/AppData/Local/Temp/plomada_capture_20261008_040127_564.jpg",
+      "ms": 139.3,
+      "bytes": 37723,
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_091245_805.jpg",
       "size": [
         1280,
         720
       ]
     },
     "lines_only": {
-      "ms": 123.3,
+      "ms": 113.6,
       "bytes": 71611,
-      "path": "~/AppData/Local/Temp/plomada_capture_20261008_040127_690.jpg",
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_091245_929.jpg",
       "size": [
         1280,
         720
@@ -76,11 +76,11 @@
   "fbx": {
     "path": "~/AppData/Local/Temp/plomada_e2e.fbx",
     "format": "fbx",
-    "bytes": 1057132,
-    "job_id": "j6",
+    "bytes": 1056778,
+    "job_id": "j11",
     "steps": 1,
-    "elapsed_ms": 1259.3,
-    "max_step_ms": 1259.1
+    "elapsed_ms": 2566.4,
+    "max_step_ms": 2566.2
   },
   "plan_diffs": [],
   "detail": {
@@ -92,6 +92,7 @@
     "walls": [
       {
         "name": "N00_muros",
+        "storey": "N00",
         "manifold": true,
         "faces": 78,
         "internal_faces": 0
@@ -113,8 +114,17 @@
       "W7"
     ],
     "glass_panes": 7,
-    "rooms": 4
+    "rooms": 4,
+    "stairs": 0,
+    "storeys": [
+      {
+        "name": "N00",
+        "elevation": 0.0,
+        "height": 2800.0,
+        "slab_thickness": 150.0
+      }
+    ]
   },
-  "max_tick_ms_after_build": 1259.85,
+  "max_tick_ms_after_build": 2567.0,
   "passed": true
 }

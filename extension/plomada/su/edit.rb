@@ -50,25 +50,35 @@ module Plomada
         SU.set_attrs(group, 'finishes' => JSON.generate(finishes))
       end
 
-      # Solves the edited plan and returns the units that replace the storey's
-      # walls group. The caller appends its own units, then raise_unit.
+      # Returns the units that solve the edited plan (one building per step,
+      # changing nothing, so a refused edit leaves the model as it was) and
+      # then replace the storey's walls group; state[:layout] holds the solved
+      # layout from the 'plan solved' step on. The caller appends its own
+      # units, then raise_unit.
       def rebuild(model, raw_plan, storey)
         settings = PlanReader.storey_settings(model, storey)
         raw = raw_plan.merge('storey' => { 'name' => storey, 'height' => settings['height'] })
         plan = Plan.normalize(raw)
         height = plan['storey']['height']
-        layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: height)
         old = walls_group(model, storey)
         state = { group: nil, faces: 0, removed: 0, manifold: nil, groups: [], finishes: finishes(old),
                   elevation: settings.fetch('elevation', 0.0).to_f }
-        units = [['remove old walls', lambda {
-          model.entities.erase_entities(old) if old&.valid?
-          state[:before] = Storeys.snapshot(model)
-        }]]
-        units.concat(Build.wall_units(model, plan, layout, storey, height, state))
-        units << ['strip internal faces', -> { Build.finish_walls(state, layout, plan, settings, height) }]
-        [plan, layout, units, state]
+        units = Build.solve_units(Geometry.building_plans(plan['walls'], plan['openings']), height, state)
+        at = units.size
+        units << ['plan solved', lambda {
+          layout = state[:layout] = Geometry.merge_layouts(state[:layouts])
+          walls = [['remove old walls', lambda {
+            model.entities.erase_entities(old) if old&.valid?
+            state[:before] = Storeys.snapshot(model)
+          }]]
+          walls.concat(Build.wall_units(model, plan, layout, storey, height, state))
+          walls << ['strip internal faces', -> { Build.finish_walls(state, layout, plan, settings, height) }]
+          units.insert(at + 1, *walls)
+        }]
+        [plan, units, state]
       end
+
+      def frame_of(state, id) = state[:layout][:openings].find { |f| f[:id] == id }
 
       def raise_unit(model, state, storey)
         ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
@@ -89,7 +99,7 @@ module Plomada
         end
 
         plan['walls'] << wall
-        _, _, units, state = rebuild(model, plan, storey)
+        _, units, state = rebuild(model, plan, storey)
         units << raise_unit(model, state, storey)
         UnitJob.new('Plomada: add wall', units) do
           summary(state, storey).merge('wall' => wall['id'], 'walls' => plan['walls'].size)
@@ -106,11 +116,10 @@ module Plomada
         end
 
         plan['openings'] << rec
-        norm, layout, units, state = rebuild(model, plan, storey)
-        frame = layout[:openings].find { |f| f[:id] == rec['id'] }
+        norm, units, state = rebuild(model, plan, storey)
         stored = norm['openings'].find { |o| o['id'] == rec['id'] }
         units << ["opening #{rec['id']}", lambda {
-          Openings.place(model, frame.merge(record: Build.opening_record(stored)))
+          Openings.place(model, frame_of(state, rec['id']).merge(record: Build.opening_record(stored)))
         }]
         units << raise_unit(model, state, storey)
         UnitJob.new('Plomada: add opening', units) { summary(state, storey).merge('opening' => rec['id']) }
@@ -129,16 +138,16 @@ module Plomada
         raise InvalidParams, "opening #{id} has a record but no component in the model; run build_plan again" unless inst
 
         rec['offset'] = offset
-        norm, layout, units, state = rebuild(model, plan, storey)
-        frame = layout[:openings].find { |f| f[:id] == id }
+        norm, units, state = rebuild(model, plan, storey)
         stored = norm['openings'].find { |o| o['id'] == id }
         units << ["opening #{id}", lambda {
+          frame = frame_of(state, id)
           Openings.move(model, inst, frame.merge(record: Build.opening_record(stored)), elevation: state[:elevation])
         }]
         units << raise_unit(model, state, storey)
         UnitJob.new('Plomada: move opening', units) do
           summary(state, storey).merge('opening' => id, 'offset' => offset,
-                                       'origin_mm' => frame[:origin].map { |v| v.round(1) })
+                                       'origin_mm' => frame_of(state, id)[:origin].map { |v| v.round(1) })
         end
       end
 
@@ -152,7 +161,7 @@ module Plomada
         raise InvalidParams, "id names wall #{id.inspect}, which is not on storey #{storey}" unless wall
 
         wall['height'] = height
-        _, _, units, state = rebuild(model, plan, storey)
+        _, units, state = rebuild(model, plan, storey)
         units << raise_unit(model, state, storey)
         UnitJob.new('Plomada: set wall height', units) { summary(state, storey).merge('wall' => id, 'height' => height) }
       end

@@ -749,9 +749,85 @@ module Plomada
 
     module_function
 
-    # Solves walls and openings; see WallSolver.
+    # Solves walls and openings; see WallSolver. Each building (walls that
+    # touch, see wall_components) is solved on its own and the layouts merged:
+    # a building's sill and head heights then only cut its own walls.
     def solve_walls(walls, openings, storey_height: CONFIG[:storey_height_mm], config: CONFIG)
-      WallSolver.new(walls, openings, storey_height: storey_height, config: config).solve
+      merge_layouts(solve_buildings(walls, openings, storey_height: storey_height, config: config))
+    end
+
+    # One layout per building, largest plan first is not implied: the order is
+    # the order of each building's first wall in +walls+.
+    def solve_buildings(walls, openings, storey_height: CONFIG[:storey_height_mm], config: CONFIG)
+      building_plans(walls, openings, config).map do |ws, os|
+        WallSolver.new(ws, os, storey_height: storey_height, config: config).solve
+      end
+    end
+
+    # [[walls, openings]] per building.
+    def building_plans(walls, openings, config = CONFIG)
+      wall_components(walls, config).map do |idx|
+        ws = idx.map { |i| walls[i] }
+        ids = ws.to_h { |w| [w['id'], true] }
+        [ws, openings.select { |o| ids[o['wall']] }]
+      end
+    end
+
+    # Groups of wall indices whose bodies may touch: union-find over plan
+    # boxes grown by each wall's thickness plus the junction tolerance (a box
+    # test, so two walls that only come close share a group; that is safe).
+    def wall_components(walls, config = CONFIG)
+      grow = config[:junction_tolerance_mm] + 1.0
+      boxes = walls.map do |w|
+        xs = w['axis'].map { |q| q[0] }
+        ys = w['axis'].map { |q| q[1] }
+        g = w['thickness'].to_f + grow
+        [xs.min - g, ys.min - g, xs.max + g, ys.max + g]
+      end
+      parent = (0...walls.size).to_a
+      find = lambda do |i|
+        i = parent[i] = parent[parent[i]] while parent[i] != i
+        i
+      end
+      boxes.each_with_index do |a, i|
+        (0...i).each do |j|
+          b = boxes[j]
+          next if a[0] > b[2] || b[0] > a[2] || a[1] > b[3] || b[1] > a[3]
+
+          ri = find.call(i)
+          rj = find.call(j)
+          parent[[ri, rj].max] = [ri, rj].min
+        end
+      end
+      (0...walls.size).group_by { |i| find.call(i) }.values
+    end
+
+    # One layout from several buildings' layouts. Vertex ids are renumbered
+    # so each building keeps its own; exteriors are sorted largest first.
+    def merge_layouts(layouts)
+      return layouts.first if layouts.size == 1
+
+      offset = 0
+      faces = layouts.flat_map do |lay|
+        ids = lay[:faces].flat_map { |f| f[:outer_ids] + f[:hole_ids].flatten }
+        shifted = lay[:faces].map do |f|
+          f.merge(outer_ids: f[:outer_ids].map { |i| i + offset },
+                  hole_ids: f[:hole_ids].map { |h| h.map { |i| i + offset } })
+        end
+        offset += (ids.max || -1) + 1
+        shifted
+      end
+      exteriors = layouts.flat_map { |l| l[:exteriors] || [] }.sort_by { |o| -signed_area(o[:points]).abs }
+      {
+        faces: faces,
+        openings: layouts.flat_map { |l| l[:openings] },
+        solids: layouts.flat_map { |l| l[:solids] },
+        z_cuts: layouts.flat_map { |l| l[:z_cuts] }.uniq.sort,
+        exterior: exteriors.first,
+        exteriors: exteriors,
+        walls: layouts.flat_map { |l| l[:walls] },
+        warnings: layouts.flat_map { |l| l[:warnings] }
+      }
     end
   end
 end

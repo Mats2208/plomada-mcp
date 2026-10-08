@@ -43,4 +43,13 @@ class TestGeometryUnseenPlans < Minitest::Test
     assert_equal :tee, t1.end_cut[:kind]
     assert_in_delta 25_000.0, @solver.to_world(t1, [t1.end_cut[:l], t1.off(:l)])[0], 1e-6
   end
+
+  def test_each_building_is_solved_on_its_own
+    groups = G.wall_components(@plan['walls']).map { |idx| idx.map { |i| @plan['walls'][i]['id'] }.sort }
+    assert_equal [%w[B EXT P1 P2], %w[L_EXT L_T1], %w[X_A X_B X_EXT], %w[S_C S_EXT S_P1 S_P2 S_P3 S_P4]].sort, groups.sort
+    # The L house has no 1100 mm sill: the reference house's sills no longer cut its walls.
+    l_house = G.solve_buildings(*G.building_plans(@plan['walls'], @plan['openings']).find { |ws, _| ws.any? { |w| w['id'] == 'L_EXT' } },
+                                storey_height: 2800.0).first
+    assert_operator l_house[:z_cuts].size, :<, @layout[:z_cuts].size
+  end
 end

@@ -270,6 +270,9 @@ source.
   terms); without it, or for a block it does not map, furniture is a few massing boxes. Blocks outside the AutoCAD MCP
   Pro catalogue are skipped with a warning. Loading a library model blocks SketchUp for up to 3 s per model, the first
   time it enters a SketchUp model.
+- **Library models are heavy.** The complete house, with 10 furniture models and 21 site objects (trees, cars,
+  outdoor sets), exports to a 258 MB OBJ in 122 s, and SketchUp does not respond meanwhile. For Blender, export once
+  and keep the file; `furniture="massing"` exports far lighter.
 - **The site is flat and ground-floor only.** The terrain is one level slab, the site is read from the ground storey's
   DXF, and `get_plan` does not return it.
 - **`export_model` skp needs a model saved once.** SketchUp refuses to copy an untitled model, and `Model#save` can

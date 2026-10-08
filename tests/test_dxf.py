@@ -173,3 +173,35 @@ def test_catalogue_blocks_become_furniture_records():
     sofa = next(p for p in pieces if p["item"] == "sofa_3_seat")
     assert sofa["at"] == [100.0, 5000.0] and sofa["rotation"] == 270.0 and sofa["kind"] == "furniture"
     assert len(parsed.plan.stairs) == 1 and not parsed.warnings
+
+
+def test_site_blocks_and_layers_become_site_records(tmp_path):
+    path = tmp_path / "sitio.dxf"
+    shutil.copy(DXF, path)
+    doc = ezdxf.readfile(path)
+    blk = doc.blocks.new("SITIO_ARBOL")
+    blk.add_circle((0, 0), 2500)
+    msp = doc.modelspace()
+    msp.add_blockref("SITIO_ARBOL", (15000, 2000), dxfattribs={"rotation": 30})
+    doc.layers.add("SITIO-PAVIMENTO")
+    doc.layers.add("SITIO-CERCO")
+    msp.add_lwpolyline(
+        [(12000, 0), (18000, 0), (18000, 5000), (12000, 5000)], close=True, dxfattribs={"layer": "SITIO-PAVIMENTO"}
+    )
+    msp.add_lwpolyline([(-2000, -2000), (20000, -2000)], dxfattribs={"layer": "SITIO-CERCO"})
+    doc.saveas(path)
+    wire = read_plan(path).plan.to_wire()["site"]
+    (tree,) = wire["objects"]
+    assert tree["item"] == "ARBOL" and tree["at"] == [15000.0, 2000.0] and tree["rotation"] == 30.0
+    assert len(wire["paving"]) == 1 and len(wire["paving"][0]["points"]) == 4
+    assert wire["fences"][0]["closed"] is False and wire["fences"][0]["points"][1] == [20000.0, -2000.0]
+
+
+def test_the_complete_house_fixture_carries_furniture_and_site():
+    wire = read_plan(FIXTURES / "casa_completa_N00.dxf").plan.to_wire()
+    assert (len(wire["walls"]), len(wire["openings"]), len(wire["rooms"]), len(wire["furniture"])) == (6, 13, 5, 17)
+    site = wire["site"]
+    assert {k: len(v) for k, v in site.items()} == {"objects": 21, "paving": 2, "decks": 1, "pools": 1, "fences": 1}
+    assert {o["item"] for o in site["objects"]} >= {"AUTO", "SUV", "ARBOL", "PALMERA", "REPOSERA", "PERSONA"}
+    garage = next(o for o in wire["openings"] if o["id"] == "GD")
+    assert garage["width"] == 2700.0

@@ -102,4 +102,23 @@ class TestPlan < Minitest::Test
     err = assert_raises(Plomada::InvalidParams) { normalize(raw) }
     assert_match(/\Astairs\[0\]\.stair_kind must be one of/, err.message)
   end
+
+  def test_site_is_read_with_defaults
+    raw = base
+    raw['site'] = { 'objects' => [{ 'id' => 'A1', 'item' => 'ARBOL', 'at' => [1, 2] }],
+                    'pools' => [{ 'id' => 'P', 'points' => [[0, 0], [4000, 0], [4000, 2000]] }],
+                    'fences' => [{ 'id' => 'C', 'points' => [[0, 0], [10, 0]] }] }
+    site = normalize(raw)['site']
+    assert_equal 0.0, site['objects'][0]['rotation']
+    assert_equal 1500.0, site['pools'][0]['depth']
+    assert_equal [false, 1800.0], [site['fences'][0]['closed'], site['fences'][0]['height']]
+    assert_equal [], site['paving']
+  end
+
+  def test_a_pool_with_two_points_is_refused_by_name
+    raw = base
+    raw['site'] = { 'pools' => [{ 'id' => 'P', 'points' => [[0, 0], [1, 1]] }] }
+    err = assert_raises(Plomada::InvalidParams) { normalize(raw) }
+    assert_match(/\Asite\.pools\[0\]\.points must be a list of at least 3/, err.message)
+  end
 end

@@ -4,6 +4,7 @@ require 'json'
 require_relative 'kit'
 require_relative '../geometry'
 require_relative 'storeys'
+require_relative 'library'
 
 module Plomada
   module SU
@@ -62,7 +63,7 @@ module Plomada
     # Windows and doors as component instances named after their tag, on tag
     # Carpinterias, with the full opening record in their plomada attributes.
     module Openings
-      MATERIALS = { frame: 'MAT_metal', glass: 'MAT_vidrio', wood: 'MAT_madera' }.freeze
+      MATERIALS = { frame: 'MAT_metal', glass: 'MAT_vidrio', wood: 'MAT_madera', metal: 'MAT_porton' }.freeze
 
       module_function
 
@@ -71,6 +72,8 @@ module Plomada
         h = Geometry.fmt(frame[:height])
         if frame[:kind] == 'window'
           "plomada_ventana_#{w}x#{h}"
+        elsif garage?(frame)
+          "plomada_porton_#{w}x#{h}_#{Geometry.fmt(frame[:thickness])}_#{frame[:swing]}"
         else
           "plomada_puerta_#{w}x#{h}_#{Geometry.fmt(frame[:thickness])}_#{frame[:swing]}_#{frame[:hand]}"
         end
@@ -85,6 +88,8 @@ module Plomada
         defn.entities.clear! if existing
         parts = if frame[:kind] == 'window'
                   Geometry.window_parts(frame[:width], frame[:height])
+                elsif garage?(frame)
+                  Geometry.garage_door_parts(frame[:width], frame[:height], frame[:thickness], frame[:swing])
                 else
                   Geometry.door_parts(frame[:width], frame[:height], frame[:thickness], frame[:swing], frame[:hand])
                 end
@@ -92,6 +97,9 @@ module Plomada
         SU.set_attrs(defn, 'kind' => 'opening_definition', 'opening_kind' => frame[:kind])
         defn
       end
+
+      # A door at least garage_door_min_width_mm wide is a sectional garage door.
+      def garage?(frame) = frame[:kind] == 'door' && frame[:width] >= CONFIG[:garage_door_min_width_mm]
 
       def add_part(model, entities, part)
         g = entities.add_group
@@ -191,7 +199,19 @@ module Plomada
         defn
       end
 
-      def place(model, rec)
+      # The library component for the item when there is one (scaled to the
+      # catalogue footprint), else the massing.
+      def place(model, rec, library: nil)
+        entry = library && Library.entry(library, 'catalogo_acadmcp', rec['item'])
+        if entry
+          _, w, d, = Geometry::FURNITURE.fetch(rec['item'])
+          inst = Library.place(model, model.entities, entry, rec['at'], rec['rotation'], 0.0, w: w.to_f, d: d.to_f)
+          inst.name = rec['item']
+          inst.layer = SU.tag(model, 'Mobiliario')
+          return SU.set_attrs(inst, 'kind' => 'furniture', 'id' => rec['id'], 'item' => rec['item'], 'source' => 'library',
+                                    'record' => JSON.generate({ 'v' => 1, 'kind' => 'furniture' }.merge(rec)))
+        end
+
         tr = Geom::Transformation.translation(SU.pt(rec['at'] + [0.0])) *
              Geom::Transformation.rotation(ORIGIN, Z_AXIS, rec['rotation'].to_f.degrees)
         inst = model.entities.add_instance(definition(model, rec['item']), tr)

@@ -76,8 +76,24 @@ def test_build_from_autocad_sends_the_parsed_plan(run, tmp_path):
         "overhang": 400.0,
         "replace": True,
         "storey": "N00",
+        "furniture": "library",
     }
     assert result.structured_content["records"] == 19
+
+
+def test_the_component_library_travels_with_the_build(run, tmp_path):
+    lib = tmp_path / "biblioteca"
+    lib.mkdir()
+    (lib / "mapa_componentes.json").write_text("{}", encoding="utf-8")
+    fake = FakeExtension(handlers={"build_plan": lambda p: {"walls": 4, "warnings": []}})
+
+    async def body(client):
+        return await client.call_tool("build_from_autocad", {"dxf_path": str(DXF), "furniture": "massing"})
+
+    result = run(_session(fake, tmp_path, body, library_dir=lib))
+    assert not result.is_error, _text(result)
+    options = next(p for m, p in fake.seen if m == "build_plan")["options"]
+    assert options["library"] == str(lib) and options["furniture"] == "massing"
 
 
 def test_upper_storey_and_edits_carry_the_storey(run, tmp_path):

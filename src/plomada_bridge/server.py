@@ -23,7 +23,7 @@ from .config import BridgeConfig, load_config
 from .connection import SketchUpClient
 from .dxf import DxfPlanError, read_plan
 from .errors import NOT_RESPONDING, BridgeError, NotResponding, describe
-from .models import Furniture, Opening, Plan, Room, Stair, Wall, describe_error
+from .models import Furniture, Opening, Plan, Room, Site, Stair, Wall, describe_error
 
 INSTRUCTIONS = """\
 Plomada models architecture inside a running SketchUp 2025 (Windows) from plans drawn by
@@ -34,6 +34,11 @@ build_from_autocad turns the ACADMCP_ARCH records of a DXF into manifold walls w
 openings, window and door components, a floor slab, a roof, stairs and room labels, as ONE undo
 step. Several floors: one DXF per floor, built in order with storey="N00", "N01", ...; each new
 storey is stacked on the one below, its slab gets the stair wells, the roof below is replaced.
+Furniture blocks become real models from the component library where it maps them (furniture=
+"library", the default) or simple boxes ("massing"). The ground-floor DXF can carry the site:
+SITIO_<NAME> blocks (ARBOL, PALMERA, PINO, ARBUSTO, MACETA, AUTO, SUV, PICKUP, REPOSERA,
+PARRILLA, MESA_JARDIN, PERSONA, FAROLA) and polylines on SITIO-PAVIMENTO, SITIO-DECK,
+SITIO-PILETA (closed) and SITIO-CERCO; then add_terrain lays the lawn around it all.
 Edit afterwards with move_opening, set_wall_height, add_wall, add_opening, add_slab, add_roof,
 set_material; they read the plan back from the model, never from the DXF, and take storey
 when the model has several.
@@ -94,6 +99,7 @@ class PlanInput(BaseModel):
     furniture: Annotated[
         list[Furniture], Field(default_factory=list, description="catalogue pieces: item, back-left corner, rotation")
     ]
+    site: Annotated[Site, Field(default_factory=Site, description="site objects, paving, decks, pools, fences")]
 
 
 class Bridge:
@@ -143,8 +149,11 @@ def build_options(
     replace: bool,
     storey: str = "N00",
     elevation: float | None = None,
+    library: str | None = None,
+    furniture: str = "library",
 ) -> dict[str, Any]:
     opts: dict[str, Any] = {
+        "furniture": furniture,
         "storey_height": storey_height,
         "slab": slab,
         "roof": roof,
@@ -154,6 +163,8 @@ def build_options(
     }
     if elevation is not None:
         opts["elevation"] = elevation
+    if library is not None:
+        opts["library"] = library
     return opts
 
 
@@ -167,6 +178,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
     b = bridge or Bridge()
     cfg = b.config
     mcp = MCPServer("plomada", instructions=INSTRUCTIONS, version=__version__)
+    library_path = str(cfg.library_dir) if cfg.library_dir else None
 
     # --- read-only ----------------------------------------------------------------------
 
@@ -298,6 +310,10 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
                 ge=-100_000, le=1_000_000, description="mm of this storey's floor; default stacked on the storey below"
             ),
         ] = None,
+        furniture: Annotated[
+            Literal["library", "massing"],
+            Field(description="library: real 3D models from the component library where mapped; massing: simple boxes"),
+        ] = "library",
         deadline_ms: DeadlineMs = cfg.default_deadline_ms,
     ) -> dict[str, Any]:
         """Builds the exact 3D house of an AutoCAD MCP Pro plan in one call and one undo step: manifold
@@ -311,7 +327,9 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
             ) from None
         params = {
             "plan": parsed.plan.to_wire(),
-            "options": build_options(storey_height, slab, roof, overhang, replace, storey, elevation),
+            "options": build_options(
+                storey_height, slab, roof, overhang, replace, storey, elevation, library_path, furniture
+            ),
             "label": f"build from AutoCAD ({parsed.path.name})",
         }
         res = await b.mutate("build_from_autocad", "build_plan", params, ctx, deadline_ms)
@@ -347,6 +365,10 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
                 ge=-100_000, le=1_000_000, description="mm of this storey's floor; default stacked on the storey below"
             ),
         ] = None,
+        furniture: Annotated[
+            Literal["library", "massing"],
+            Field(description="library: real 3D models from the component library where mapped; massing: simple boxes"),
+        ] = "library",
         deadline_ms: DeadlineMs = cfg.default_deadline_ms,
     ) -> dict[str, Any]:
         """Builds a house from plan JSON (the same records build_from_autocad reads from a DXF), as one undo step."""
@@ -358,7 +380,9 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
             ) from None
         params = {
             "plan": checked.to_wire(),
-            "options": build_options(storey_height, slab, roof, overhang, replace, storey, elevation),
+            "options": build_options(
+                storey_height, slab, roof, overhang, replace, storey, elevation, library_path, furniture
+            ),
         }
         return await b.mutate("build_plan", "build_plan", params, ctx, deadline_ms)
 

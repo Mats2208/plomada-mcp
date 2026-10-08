@@ -84,4 +84,21 @@ class TestGeometryCameras < Minitest::Test
     cam = G.room_camera([3000.0, 2000.0], edges, G.dominant_axis([BOX]))
     refute(cam[:eye][0] > 3800 && cam[:eye][1] > 2200, "the eye stands clear of the stair: #{cam.inspect}")
   end
+
+  def test_an_eye_behind_a_fence_moves_inside_it
+    cams = [{ name: 'E1', eye: [-20_000.0, 0.0, 1600.0], target: [0.0, 0.0, 1600.0] },
+            { name: 'E2', eye: [0.0, -5000.0, 1600.0], target: [0.0, 0.0, 1600.0] }]
+    fence = { points: [[-9000, -3000], [-9000, 3000], [9000, 3000]], closed: false }
+    moved, kept = G.clear_view(cams, [fence])
+    assert_in_delta(-7500.0, moved[:eye][0], 1e-6)
+    assert_equal [0.0, 1600.0], moved[:eye][1, 2]
+    assert_equal cams[1], kept
+  end
+
+  def test_an_eye_inside_a_parked_car_moves_out_of_it
+    cams = [{ name: 'E1', eye: [-10_000.0, 0.0, 1600.0], target: [0.0, 0.0, 1600.0] }]
+    car = [[-11_000.0, -1000.0], [-8000.0, 1000.0]]
+    (cam,) = G.clear_view(cams, [], [car])
+    assert_in_delta(-7200.0, cam[:eye][0], 1e-6)
+  end
 end

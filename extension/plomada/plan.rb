@@ -41,7 +41,7 @@ module Plomada
       furniture = list(raw, 'furniture').each_with_index.map { |f, i| furniture(f, "furniture[#{i}]") }
       unique!(furniture, 'furniture')
       { 'walls' => walls, 'openings' => openings, 'rooms' => rooms, 'stairs' => stairs, 'furniture' => furniture,
-        'storey' => storey }
+        'site' => site(raw['site']), 'storey' => storey }
     end
 
     def normalize_storey(raw, config)
@@ -176,6 +176,51 @@ module Plomada
         'at' => point(raw['at'], "#{path}.at"),
         'rotation' => raw['rotation'].nil? ? 0.0 : number(raw['rotation'], "#{path}.rotation")
       }
+    end
+
+    SITE_POLYGONS = %w[paving decks pools].freeze
+
+    # The site around the house (from the SITIO_ blocks and SITIO-* layers):
+    # objects are placed library components; paving, decks and pools are
+    # closed polygons; fences are polylines.
+    def site(raw)
+      raw ||= {}
+      raise InvalidParams, "site must be an object, got #{type_name(raw)}" unless raw.is_a?(Hash)
+
+      out = {}
+      out['objects'] = list(raw, 'objects').each_with_index.map do |o, i|
+        path = "site.objects[#{i}]"
+        object!(o, path)
+        { 'id' => text(o['id'], "#{path}.id"), 'item' => text(o['item'], "#{path}.item"),
+          'at' => point(o['at'], "#{path}.at"),
+          'rotation' => o['rotation'].nil? ? 0.0 : number(o['rotation'], "#{path}.rotation") }
+      end
+      SITE_POLYGONS.each do |key|
+        out[key] = list(raw, key).each_with_index.map do |o, i|
+          path = "site.#{key}[#{i}]"
+          object!(o, path)
+          rec = { 'id' => text(o['id'], "#{path}.id"), 'points' => points(o['points'], "#{path}.points", 3) }
+          rec['depth'] = o['depth'].nil? ? 1500.0 : positive(o['depth'], "#{path}.depth", 5000.0) if key == 'pools'
+          rec
+        end
+      end
+      out['fences'] = list(raw, 'fences').each_with_index.map do |o, i|
+        path = "site.fences[#{i}]"
+        object!(o, path)
+        { 'id' => text(o['id'], "#{path}.id"), 'points' => points(o['points'], "#{path}.points", 2),
+          'closed' => o['closed'] == true,
+          'height' => o['height'].nil? ? 1800.0 : positive(o['height'], "#{path}.height", 5000.0) }
+      end
+      %w[objects paving decks pools fences].each { |k| unique!(out[k], "site.#{k}") }
+      out
+    end
+
+    def points(value, path, min)
+      unless value.is_a?(Array) && value.size >= min
+        raise InvalidParams, "#{path} must be a list of at least #{min} [x, y] points, got #{value.inspect[0, 60]}"
+      end
+
+      value.each_with_index.map { |p, i| point(p, "#{path}[#{i}]") }
     end
 
     # --- field readers --------------------------------------------------------

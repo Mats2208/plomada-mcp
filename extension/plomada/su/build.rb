@@ -4,6 +4,8 @@ require 'json'
 require_relative 'kit'
 require_relative 'builders'
 require_relative 'storeys'
+require_relative 'library'
+require_relative 'site'
 require_relative '../plan'
 require_relative '../jobs'
 require_relative '../geometry'
@@ -16,7 +18,8 @@ module Plomada
     # then each step does one small unit (one wall, one opening, one label).
     module Build
       ROOFS = %w[flat gable hip none].freeze
-      KINDS_REPLACED = %w[walls opening slab roof room stair furniture].freeze
+      KINDS_REPLACED = %w[walls opening slab roof room stair furniture site].freeze
+      FURNITURE_MODES = %w[library massing].freeze
       BLONDEL_MM = (600.0..650.0).freeze # 2R + G, comfortable stairs
 
       module_function
@@ -38,7 +41,9 @@ module Plomada
           'pitch' => opt_num(raw, 'pitch', config[:gable_pitch_deg]),
           'fit_view' => opt_bool(raw, 'fit_view', true),
           'storey' => raw['storey'].nil? ? nil : storey_name(raw['storey']),
-          'elevation' => raw['elevation'].nil? ? nil : Plan.number(raw['elevation'], 'options.elevation')
+          'elevation' => raw['elevation'].nil? ? nil : Plan.number(raw['elevation'], 'options.elevation'),
+          'library' => raw['library'].nil? ? nil : Plan.text(raw['library'], 'options.library'),
+          'furniture' => Plan.choice(raw.fetch('furniture', 'library') || 'library', 'options.furniture', FURNITURE_MODES)
         }.tap do |o|
           raise InvalidParams, "options.pitch must be less than 75, got #{Plan.fmt(o['pitch'])}" if o['pitch'] >= 75
         end
@@ -76,6 +81,10 @@ module Plomada
         plan = Plan.normalize(raw)
         height = plan['storey']['height']
         warnings = []
+        library = opts['furniture'] == 'library' && Library.map(opts['library']) ? opts['library'] : nil
+        if opts['furniture'] == 'library' && library.nil? && (plan['furniture'].any? || plan['site']['objects'].any?)
+          warnings << "no component library at #{opts['library'].inspect}: furniture stays massing and site objects are skipped"
+        end
         known, unknown = plan['furniture'].partition { |f| Geometry.furniture_item?(f['item']) }
         unless unknown.empty?
           warnings << "#{unknown.size} furniture block(s) skipped, no massing for: #{unknown.map { |f| f['item'] }.uniq.join(', ')}"
@@ -86,7 +95,7 @@ module Plomada
           [st, lay]
         end
         { plan: plan, buildings: Geometry.building_plans(plan['walls'], plan['openings']), stairs: stairs,
-          furniture: known, warnings: warnings, height: height }
+          furniture: known, library: library, warnings: warnings, height: height }
       end
 
       # One job step per building: the wall solve is the costly part, and a
@@ -172,6 +181,8 @@ module Plomada
             'doors' => ops.count { |o| o['opening_kind'] == 'door' },
             'windows' => ops.count { |o| o['opening_kind'] == 'window' },
             'rooms' => plan['rooms'].size, 'stairs' => plan['stairs'].size, 'furniture' => prep[:furniture].size,
+            'furniture_source' => prep[:library] ? 'library' : 'massing',
+            'site' => plan['site'].transform_values(&:size).merge('objects_placed' => state[:site] || 0),
             'wall_faces' => state[:faces],
             'internal_faces_removed' => state[:removed], 'manifold' => state[:manifold],
             'groups' => state[:groups], 'storey' => storey, 'elevation' => state[:elevation],
@@ -237,11 +248,46 @@ module Plomada
         plan['rooms'].each do |room|
           units << ["room #{room['id']}", -> { Rooms.label(model, room_record(room)) }]
         end
-        prep[:furniture].each_slice(8) do |batch|
-          units << ["furniture #{batch.map { |f| f['id'] }.join(', ')}", -> { batch.each { |f| Furniture.place(model, f) } }]
+        # A library piece loads a .skp (one native call): one per step. Massing goes eight at a time.
+        prep[:furniture].each_slice(prep[:library] ? 1 : 8) do |batch|
+          units << ["furniture #{batch.map { |f| f['id'] }.join(', ')}", lambda {
+            batch.each { |f| Furniture.place(model, f, library: prep[:library]) }
+          }]
         end
+        units.concat(site_units(model, plan['site'], prep, opts, state))
         units << ['raise to storey', -> { Storeys.stamp_and_lift(model, state[:before], storey, state[:elevation]) }]
         units << ['view', -> { View.fit(model) if opts['fit_view'] }]
+        units
+      end
+
+      # The site stands on the terrain, so only the ground storey builds it.
+      def site_units(model, site, prep, opts, state)
+        ground = -opts['slab_thickness']
+        units = []
+        guard = lambda do |label, &work|
+          units << [label, lambda {
+            if state[:elevation] > 1.0
+              prep[:warnings] << "#{label} skipped: the site belongs on the ground storey's DXF" unless state[:site_warned]
+              state[:site_warned] = true
+            else
+              work.call
+            end
+          }]
+        end
+        hard = (site['paving'] + site['decks']).map { |r| r['points'] }
+        site['objects'].each do |o|
+          guard.call("site #{o['item']} #{o['id']}") do
+            if Site.object(model, o, prep[:library], Geometry.site_base(o['at'], hard, ground))
+              state[:site] = (state[:site] || 0) + 1
+            else
+              prep[:warnings] << "site object #{o['item']} (#{o['id']}): no component in the library"
+            end
+          end
+        end
+        site['paving'].each { |r| guard.call("paving #{r['id']}") { Site.paving(model, r, ground) } }
+        site['decks'].each { |r| guard.call("deck #{r['id']}") { Site.paving(model, r, ground, deck: true) } }
+        site['fences'].each { |r| guard.call("fence #{r['id']}") { Site.fence(model, r, ground) } }
+        site['pools'].each { |r| guard.call("pool #{r['id']}") { Site.pool(model, r, ground) } }
         units
       end
 

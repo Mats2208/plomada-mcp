@@ -56,6 +56,7 @@ class BridgeConfig:
     fov_deg: float = 35.0  # degrees, scene field of view
     list_page_size: int = 200  # entities per list_entities page
     undo_max_steps: int = 10  # steps the undo tool accepts
+    library_dir: Path | None = field(default_factory=lambda: library_dir())  # component library (mapa_componentes.json)
 
     @property
     def token_path(self) -> Path:
@@ -64,6 +65,16 @@ class BridgeConfig:
     @property
     def endpoint_path(self) -> Path:
         return self.data_dir / "endpoint.json"
+
+
+def library_dir() -> Path | None:
+    """PLOMADA_LIBRARY, else a `biblioteca` folder next to the repo (C:\\mcp\biblioteca), if it has a map."""
+    env = os.environ.get("PLOMADA_LIBRARY")
+    candidates = [Path(env)] if env else [Path(__file__).resolve().parents[3] / "biblioteca"]
+    for c in candidates:
+        if (c / "mapa_componentes.json").is_file():
+            return c
+    return None
 
 
 def load_config() -> BridgeConfig:

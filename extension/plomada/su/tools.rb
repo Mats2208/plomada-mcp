@@ -325,11 +325,25 @@ module Plomada
         if exterior
           points = []
           SU.plomada_entities(model).each do |e|
-            next unless e.is_a?(Sketchup::Group) && !%w[room terrain].include?(SU.kind(e))
+            # The buildings only: the site around them (paving, fences, pools) is not framed.
+            next unless e.is_a?(Sketchup::Group) && !%w[room terrain site].include?(SU.kind(e))
 
             world_points(e.entities, e.transformation, points)
           end
-          Geometry.exterior_cameras(points.uniq, eye_h, fov_out).each do |c|
+          fences = model.entities.grep(Sketchup::Group)
+                        .select { |g| g.valid? && SU.kind(g) == 'site' && g.get_attribute(DICT, 'site_kind') == 'fence' }
+                        .map { |g| JSON.parse(g.get_attribute(DICT, 'record')).then { |r| { points: r['points'], closed: r['closed'] } } }
+          # A car is in the way as a whole; a tree only by its trunk, the eye may stand under the leaves.
+          boxes = model.entities.grep(Sketchup::ComponentInstance).select { |i| SU.kind(i) == 'site' }.map do |i|
+            lo = SU.to_mm(i.bounds.min)[0, 2]
+            hi = SU.to_mm(i.bounds.max)[0, 2]
+            next [lo, hi] unless Site::TREES.include?(i.get_attribute(DICT, 'item').to_s.upcase)
+
+            c = [(lo[0] + hi[0]) / 2.0, (lo[1] + hi[1]) / 2.0]
+            [[c[0] - 300.0, c[1] - 300.0], [c[0] + 300.0, c[1] + 300.0]]
+          end
+          ext = Geometry.exterior_cameras(points.uniq, eye_h, fov_out)
+          Geometry.clear_view(ext, fences, boxes).each do |c|
             cams << c.merge(fov: fov_out, view: 'exterior')
           end
           cams << { name: 'A_aerea', view: 'aerial', fov: CONFIG[:scene_fov_deg] }

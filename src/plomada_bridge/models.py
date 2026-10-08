@@ -109,6 +109,44 @@ class Furniture(_Record):
     rotation: Annotated[float, Field(allow_inf_nan=False, description="degrees CCW")] = 0.0
 
 
+class SiteObject(BaseModel):
+    """A SITIO_<NAME> block: a library component (tree, car, lounger...) centred on at."""
+
+    model_config = ConfigDict(extra="ignore")
+    id: Annotated[str, Field(min_length=1)]
+    item: Annotated[str, Field(min_length=1, description="ARBOL, PALMERA, AUTO, SUV, REPOSERA, PERSONA...")]
+    at: Point
+    rotation: Annotated[float, Field(allow_inf_nan=False, description="degrees CCW")] = 0.0
+
+
+class SitePolygon(BaseModel):
+    """A closed polyline on SITIO-PAVIMENTO, SITIO-DECK or SITIO-PILETA."""
+
+    model_config = ConfigDict(extra="ignore")
+    id: Annotated[str, Field(min_length=1)]
+    points: Annotated[list[Point], Field(min_length=3)]
+    depth: Annotated[float | None, Field(gt=0, le=5000, description="pool depth, mm")] = None
+
+
+class SiteFence(BaseModel):
+    """A polyline on SITIO-CERCO."""
+
+    model_config = ConfigDict(extra="ignore")
+    id: Annotated[str, Field(min_length=1)]
+    points: Annotated[list[Point], Field(min_length=2)]
+    closed: bool = False
+    height: Annotated[float, Field(gt=0, le=5000, description="mm")] = 1800.0
+
+
+class Site(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    objects: list[SiteObject] = Field(default_factory=list)
+    paving: list[SitePolygon] = Field(default_factory=list)
+    decks: list[SitePolygon] = Field(default_factory=list)
+    pools: list[SitePolygon] = Field(default_factory=list)
+    fences: list[SiteFence] = Field(default_factory=list)
+
+
 class Storey(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -124,6 +162,7 @@ class Plan(BaseModel):
     rooms: list[Room] = Field(default_factory=list)
     stairs: list[Stair] = Field(default_factory=list)
     furniture: list[Furniture] = Field(default_factory=list)
+    site: Site = Field(default_factory=Site)
     storey: Storey | None = None
 
     @model_validator(mode="after")
@@ -156,6 +195,7 @@ class Plan(BaseModel):
             "furniture": [
                 {"v": 1, "kind": "furniture", **f.model_dump(mode="json", exclude={"v"})} for f in self.furniture
             ],
+            "site": self.site.model_dump(mode="json", exclude_none=True),
         }
         if self.storey is not None:
             out["storey"] = self.storey.model_dump()

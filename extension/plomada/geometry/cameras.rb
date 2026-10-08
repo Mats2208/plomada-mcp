@@ -18,6 +18,7 @@ module Plomada
 
     CAMERA_WALL_MARGIN_MM = 350.0 # mm the interior eye keeps off the walls
     CAMERA_FIT_MARGIN = 1.08      # breathing room around a framed building
+    CAMERA_FENCE_CLEAR_MM = 1500.0 # mm an exterior eye keeps inside a fence it would look across
 
     # The edges of closed plan rings (stair footprints, stair wells): obstacles
     # for the room cameras like the walls.
@@ -126,6 +127,63 @@ module Plomada
           xy = add(c, scale(dir, dist))
           { name: "E#{idx + 1}_#{label}", eye: [xy[0], xy[1], eye_height], target: [c[0], c[1], eye_height] }
         end
+    end
+
+    # The cameras with every eye that would look at the building across a
+    # fence (polylines [{points:, closed:}]) moved in along its line of
+    # sight to CAMERA_FENCE_CLEAR_MM inside the last fence it crosses, and
+    # every eye that stands inside a site object (plan boxes [[x0, y0],
+    # [x1, y1]]: a car, a tree) moved on until it is out of it.
+    def clear_view(cams, fences, boxes = [], clear = CAMERA_FENCE_CLEAR_MM)
+      segs = fences.flat_map do |f|
+        pts = f[:points]
+        s = pts.each_cons(2).to_a
+        s << [pts[-1], pts[0]] if f[:closed] && pts.size > 2
+        s
+      end
+      cams.map do |c|
+        e = c[:eye][0, 2]
+        t = c[:target][0, 2]
+        sight = sub(t, e)
+        len = Math.sqrt(dot(sight, sight))
+        next c if len < 1.0
+
+        hits = segs.filter_map { |a, b| crossing(e, sight, a, b) }
+
+        u = hits.empty? ? 0.0 : hits.max + (clear / len)
+        5.times do
+          p = add(e, scale(sight, u))
+          box = boxes.find { |lo, hi| p[0].between?(lo[0] - 300.0, hi[0] + 300.0) && p[1].between?(lo[1] - 300.0, hi[1] + 300.0) }
+          break unless box
+
+          u = box_exit(e, sight, box, 300.0) + (500.0 / len)
+        end
+        next c if u.zero?
+
+        xy = add(e, scale(sight, [u, 0.9].min))
+        c.merge(eye: [xy[0], xy[1], c[:eye][2]])
+      end
+    end
+
+    # The u at which p + u * d leaves the box grown by +pad+.
+    def box_exit(p, d, (lo, hi), pad)
+      [0, 1].map do |k|
+        next Float::INFINITY if d[k].abs < 1e-9
+
+        ((d[k].positive? ? hi[k] + pad : lo[k] - pad) - p[k]) / d[k]
+      end.min
+    end
+
+    # Where the segment a-b crosses p + u * d, as u in [0, 1], or nil.
+    def crossing(p, d, a, b)
+      ab = sub(b, a)
+      den = cross(d, ab)
+      return nil if den.abs < 1e-9
+
+      ap = sub(a, p)
+      u = cross(ap, ab) / den
+      v = cross(ap, d) / den
+      u.between?(0.0, 1.0) && v.between?(0.0, 1.0) ? u : nil
     end
   end
 end

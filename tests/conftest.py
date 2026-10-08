@@ -132,6 +132,7 @@ def make_config(tmp_path: Path, port: int, **overrides: Any) -> BridgeConfig:
         read_timeout_s=1.0,
         mutation_grace_s=0.3,
         default_deadline_ms=500,
+        library_dir=None,
     )
     base.update(overrides)
     return BridgeConfig(**base)

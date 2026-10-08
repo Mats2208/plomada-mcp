@@ -22,6 +22,8 @@ from .models import RECORD_VERSION, Plan, parse_plan
 
 APP_ID = "ACADMCP_ARCH"
 BLOCK_PREFIX = "ARCH_"  # AutoCAD MCP Pro catalogue blocks: ARCH_<NAME>
+SITE_PREFIX = "SITIO_"  # site blocks: SITIO_<NAME>, origin at the object's centre
+SITE_LAYERS = {"SITIO-PAVIMENTO": "paving", "SITIO-DECK": "decks", "SITIO-PILETA": "pools", "SITIO-CERCO": "fences"}
 KINDS = ("wall", "opening", "stair", "room")
 
 
@@ -101,6 +103,35 @@ def furniture(doc: Drawing) -> tuple[list[dict[str, Any]], list[str]]:
     return out, warnings
 
 
+def site(doc: Drawing) -> dict[str, list[dict[str, Any]]]:
+    """The site: SITIO_<NAME> inserts (a library component centred on the insert point) and
+    the lightweight polylines on the SITIO-PAVIMENTO, -DECK, -PILETA (closed) and -CERCO layers."""
+    out: dict[str, list[dict[str, Any]]] = {"objects": [], "paving": [], "decks": [], "pools": [], "fences": []}
+    msp = doc.modelspace()
+    for ins in msp.query("INSERT"):
+        name = ins.dxf.name
+        if name.upper().startswith(SITE_PREFIX):
+            at = ins.dxf.insert
+            out["objects"].append(
+                {
+                    "id": ins.dxf.handle,
+                    "item": name[len(SITE_PREFIX) :].upper(),
+                    "at": [float(at.x), float(at.y)],
+                    "rotation": float(ins.dxf.get("rotation", 0.0)),
+                }
+            )
+    for pl in msp.query("LWPOLYLINE"):
+        key = SITE_LAYERS.get(pl.dxf.layer.upper())
+        if key is None:
+            continue
+        pts = [[float(x), float(y)] for x, y, *_ in pl.get_points("xy")]
+        rec: dict[str, Any] = {"id": pl.dxf.handle, "points": pts}
+        if key == "fences":
+            rec["closed"] = bool(pl.closed)
+        out[key].append(rec)
+    return out
+
+
 def read_plan(path: str | Path, storey_height: float | None = None) -> DxfPlan:
     """Parses the DXF with ezdxf and validates the records into a Plan."""
     p = Path(path)
@@ -122,6 +153,7 @@ def read_plan(path: str | Path, storey_height: float | None = None) -> DxfPlan:
         "rooms": [r for r in recs if r["kind"] == "room"],
         "stairs": [r for r in recs if r["kind"] == "stair"],
         "furniture": pieces,
+        "site": site(doc),
     }
     if storey_height is not None:
         raw["storey"] = {"height": storey_height}

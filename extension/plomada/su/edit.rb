@@ -5,6 +5,7 @@ require_relative 'kit'
 require_relative 'builders'
 require_relative 'build'
 require_relative 'storeys'
+require_relative 'site'
 
 module Plomada
   module SU
@@ -248,7 +249,7 @@ module Plomada
         settings = PlanReader.storey_settings(model, lowest['name'])
         plan = Plan.normalize(current_plan(model, lowest['name']).merge('storey' => nil))
         layout = Geometry.solve_walls(plan['walls'], plan['openings'], storey_height: settings['height'].to_f)
-        holes = (layout[:exteriors] || []).map { |o| o[:points] }
+        holes = (layout[:exteriors] || []).map { |o| o[:points] } + Site.pool_outlines(model)
         top = lowest['elevation'] - (settings['slab'] == false ? 0.0 : settings.fetch('slab_thickness', CONFIG[:slab_thickness_mm]).to_f)
         bb = Geom::BoundingBox.new
         SU.plomada_entities(model).each { |e| bb.add(e.bounds) unless %w[terrain room].include?(SU.kind(e)) }

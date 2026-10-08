@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.25"
+
+      - name: Install Python 3.12 and the bridge
+        run: |
+          uv python install 3.12
+          uv sync --frozen
+
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Pytest
+        run: uv run pytest
+
+      - name: Set up Ruby 3.2 (the Ruby SketchUp 2024-2025 embed)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Ruby suite (minitest, no SketchUp)
+        run: ruby -Itest test/run_all.rb
+
+      - name: Build the .rbz
+        run: uv run python scripts/build_rbz.py
+
+      - name: Upload the .rbz
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plomada-rbz
+          path: dist/*.rbz

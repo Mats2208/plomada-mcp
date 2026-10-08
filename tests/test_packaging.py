@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 import tomllib
 import zipfile
@@ -57,3 +58,31 @@ def test_both_sides_agree_on_the_wire():
     assert _rb_int("max_frame_bytes") == cfg.max_frame_bytes == 32 * 1024 * 1024
     assert _rb_int("default_deadline_ms") == cfg.default_deadline_ms
     assert "host: '127.0.0.1'" in CONFIG_RB and cfg.host == "127.0.0.1"
+
+
+def test_merge_claude_config_keeps_everything_else(tmp_path):
+    spec = importlib.util.spec_from_file_location("merge", ROOT / "scripts" / "merge_claude_config.py")
+    merge = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(merge)
+    cfg = tmp_path / "claude_desktop_config.json"
+    original = {
+        "preferences": {"x": 1},
+        "mcpServers": {
+            "autocad": {"command": "a.exe", "env": {"K": "ñ"}},
+            "sketchup": {"command": "old.exe"},
+        },
+    }
+    cfg.write_bytes(json.dumps(original, indent=2, ensure_ascii=False).replace("\n", "\r\n").encode())
+    backup = merge.merge(cfg, Path("C:/mcp/plomada-mcp/.venv/Scripts/plomada-mcp.exe"))
+    raw = cfg.read_bytes()
+    data = json.loads(raw)
+    assert data["mcpServers"]["sketchup"] == {
+        "command": str(Path("C:/mcp/plomada-mcp/.venv/Scripts/plomada-mcp.exe")),
+        "args": [],
+    }
+    assert data["mcpServers"]["autocad"] == original["mcpServers"]["autocad"]
+    assert data["preferences"] == {"x": 1}
+    assert list(data["mcpServers"]) == ["autocad", "sketchup"]
+    assert b"\r\n" in raw and "ñ".encode() in raw
+    assert backup is not None and json.loads(backup.read_bytes()) == original

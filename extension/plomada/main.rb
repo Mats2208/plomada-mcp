@@ -39,6 +39,7 @@ module Plomada
             scheduler: TimerScheduler.new,
             model: -> { Sketchup.active_model },
             undo: ->(_model) { Sketchup.undo },
+            mark: ->(model, job) { model.set_attribute(SU::DICT, 'last_job', "#{job.id} #{job.request.method}") },
             audit: audit,
             log: ->(msg) { puts msg },
             capabilities: SU.capabilities,
@@ -85,11 +86,10 @@ module Plomada
         dir = __dir__
         verbose = $VERBOSE
         $VERBOSE = nil
-        Dir.glob(File.join(dir, '**', '*.rb')).sort.each do |f|
-          next if File.basename(f) == 'main.rb'
-
-          load f
-        end
+        files = Dir.glob(File.join(dir, '**', '*.rb')).sort
+        main = files.delete(File.join(dir, 'main.rb'))
+        files.each { |f| load f }
+        load main if main # last: its file_loaded? guard keeps the menu from doubling
         $VERBOSE = verbose
         start
       end

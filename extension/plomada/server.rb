@@ -72,6 +72,7 @@ module Plomada
       @capabilities = deps.fetch(:capabilities, {})
       @info = deps.fetch(:info, {})
       @allow_ruby = deps.fetch(:allow_ruby, -> { false })
+      @mark = deps.fetch(:mark, ->(_model, _job) {})
       @port = deps.fetch(:port, config[:port])
       @busy_ms = deps.fetch(:tick_busy_ms, config[:tick_busy_ms])
       @idle_ms = [config[:tick_idle_ms], @busy_ms].max
@@ -454,9 +455,15 @@ module Plomada
     # the step commits on success and aborts on any exception. The first step
     # opens the operation; later ones use the transparent form that merges
     # into it, so a whole job is a single Ctrl+Z.
+    #
+    # SketchUp drops an operation that changed nothing, and a transparent
+    # operation then merges into whatever entry is below it. So the first step
+    # always stamps the job on the model (deps[:mark]); the chain then has a
+    # base entry of its own even when the first unit had nothing to do.
     def with_operation(job)
       model = job.model
-      started = if job.committed_steps.zero?
+      first = job.committed_steps.zero?
+      started = if first
                   model.start_operation(job.label, true)
                 else
                   model.start_operation(job.label, true, false, true)
@@ -464,6 +471,7 @@ module Plomada
       raise Error.new(Codes::SKETCHUP, "SketchUp refused to start the operation #{job.label.inspect}") unless started
 
       begin
+        @mark.call(model, job) if first
         result = yield
       rescue Exception # rubocop:disable Lint/RescueException
         model.abort_operation

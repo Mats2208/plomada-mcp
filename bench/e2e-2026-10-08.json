@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-08T03:13:01",
+  "date": "2026-10-08T03:15:16",
   "checks": {
     "protocol 1, pro, entities_build": true,
-    "one undo removes the whole house": false,
+    "one undo removes the whole house": true,
     "max tick under 100 ms during the build": true,
     "build under 3.0 s": true,
     "progress reported every step": true,
@@ -31,9 +31,9 @@
     "sketchup_version": "25.0.571",
     "ruby_version": "3.2.2"
   },
-  "build_s_first": 0.814,
-  "build_s": 0.807,
-  "max_tick_ms_build": 41.03,
+  "build_s_first": 0.805,
+  "build_s": 0.815,
+  "max_tick_ms_build": 30.8,
   "build": {
     "walls": 4,
     "openings": 11,
@@ -49,24 +49,24 @@
       "N00_techo"
     ],
     "steps": 24,
-    "elapsed_ms": 742.9,
-    "max_step_ms": 12.3
+    "elapsed_ms": 750.2,
+    "max_step_ms": 5.2
   },
   "progress_notifications": 24,
   "captures": {
     "shaded": {
-      "ms": 135.7,
+      "ms": 114.6,
       "bytes": 37710,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031304_549.jpg",
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031519_543.jpg",
       "size": [
         1280,
         720
       ]
     },
     "lines_only": {
-      "ms": 120.0,
+      "ms": 119.0,
       "bytes": 71611,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031304_674.jpg",
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031519_667.jpg",
       "size": [
         1280,
         720
@@ -76,11 +76,11 @@
   "fbx": {
     "path": "C:/Users/mateo/AppData/Local/Temp/plomada_e2e.fbx",
     "format": "fbx",
-    "bytes": 1057282,
-    "job_id": "j14",
+    "bytes": 1057283,
+    "job_id": "j19",
     "steps": 1,
-    "elapsed_ms": 400.3,
-    "max_step_ms": 400.2
+    "elapsed_ms": 399.2,
+    "max_step_ms": 399.1
   },
   "plan_diffs": [],
   "detail": {
@@ -115,6 +115,6 @@
     "glass_panes": 7,
     "rooms": 4
   },
-  "max_tick_ms_after_build": 400.86,
-  "passed": false
+  "max_tick_ms_after_build": 399.91,
+  "passed": true
 }

@@ -58,6 +58,7 @@ class TestServer < Minitest::Test
       deps: {
         clock: @clock, listen: ->(_h, _p) { @listener }, scheduler: @sched,
         model: -> { @model }, undo: ->(m) { m.undo }, audit: @audit, log: ->(_m) {},
+        mark: ->(m, job) { m.events << [:mark, job.id] },
         capabilities: { 'pro' => true, 'entities_build' => true, 'pbr' => true, 'fbx_export' => true },
         allow_ruby: -> { @allow_ruby }
       }
@@ -245,6 +246,19 @@ class TestServer < Minitest::Test
     # The chain is one undo step.
     @model.undo
     assert_equal 0, @model.entities.size
+  end
+
+  # SketchUp drops an operation that changed nothing; a transparent step
+  # would then merge into the entry below. The first step stamps the model
+  # inside its operation, so the chain always owns its base entry.
+  def test_first_step_stamps_the_model_inside_its_operation
+    sock = connect
+    request(sock, 1, 'build', { 'steps' => 3 })
+    ticks(4)
+    assert sock.response(1)['result']
+    kinds = @model.events.map(&:first)
+    assert_equal %i[start mark commit start commit start commit], kinds
+    assert_equal [:mark, 'j1'], @model.events[1]
   end
 
   def test_one_job_step_per_tick_and_reads_answer_between_steps

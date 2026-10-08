@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08T03:15:16",
+  "date": "2026-10-08T03:30:04",
   "checks": {
     "protocol 1, pro, entities_build": true,
     "one undo removes the whole house": true,
@@ -31,9 +31,9 @@
     "sketchup_version": "25.0.571",
     "ruby_version": "3.2.2"
   },
-  "build_s_first": 0.805,
-  "build_s": 0.815,
-  "max_tick_ms_build": 30.8,
+  "build_s_first": 0.81,
+  "build_s": 0.806,
+  "max_tick_ms_build": 32.64,
   "build": {
     "walls": 4,
     "openings": 11,
@@ -49,24 +49,24 @@
       "N00_techo"
     ],
     "steps": 24,
-    "elapsed_ms": 750.2,
-    "max_step_ms": 5.2
+    "elapsed_ms": 742.8,
+    "max_step_ms": 4.3
   },
   "progress_notifications": 24,
   "captures": {
     "shaded": {
-      "ms": 114.6,
+      "ms": 115.8,
       "bytes": 37710,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031519_543.jpg",
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_033007_286.jpg",
       "size": [
         1280,
         720
       ]
     },
     "lines_only": {
-      "ms": 119.0,
+      "ms": 100.4,
       "bytes": 71611,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_031519_667.jpg",
+      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_033007_386.jpg",
       "size": [
         1280,
         720
@@ -76,11 +76,11 @@
   "fbx": {
     "path": "C:/Users/mateo/AppData/Local/Temp/plomada_e2e.fbx",
     "format": "fbx",
-    "bytes": 1057283,
-    "job_id": "j19",
+    "bytes": 1056777,
+    "job_id": "j11",
     "steps": 1,
-    "elapsed_ms": 399.2,
-    "max_step_ms": 399.1
+    "elapsed_ms": 1369.7,
+    "max_step_ms": 1369.5
   },
   "plan_diffs": [],
   "detail": {
@@ -115,6 +115,6 @@
     "glass_panes": 7,
     "rooms": 4
   },
-  "max_tick_ms_after_build": 399.91,
+  "max_tick_ms_after_build": 1370.68,
   "passed": true
 }

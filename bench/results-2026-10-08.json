@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-08T03:23:29",
+  "machine": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.13",
+    "cpu_count": 24,
+    "ram_gb": 31.1,
+    "cpu": "AMD Ryzen 9 9900X 12-Core Processor",
+    "gpu": "AMD Radeon(TM) Graphics / NVIDIA GeForce RTX 3060",
+    "sketchup": "25.0.571",
+    "ruby": "3.2.2"
+  },
+  "plomada": {
+    "server": "0.1.0",
+    "bridge": "0.1.0",
+    "capabilities": {
+      "pro": true,
+      "entities_build": true,
+      "pbr": true,
+      "fbx_export": true
+    }
+  },
+  "method": "wall clock at an MCP stdio client; nearest-rank percentiles",
+  "build_from_autocad_s": {
+    "n": 5,
+    "p50": 0.81,
+    "p95": 0.85,
+    "min": 0.81,
+    "max": 0.85,
+    "mean": 0.82
+  },
+  "build_max_step_ms": 9.0,
+  "model_info_ms": {
+    "n": 200,
+    "p50": 31.36,
+    "p95": 35.46,
+    "min": 16.38,
+    "max": 45.9,
+    "mean": 31.39
+  },
+  "max_tick_ms": 46.95,
+  "max_tick_what": "prepare build_plan, build_plan step 1",
+  "capture_view_ms": {
+    "n": 10,
+    "p50": 132.06,
+    "p95": 196.66,
+    "min": 110.99,
+    "max": 196.66,
+    "mean": 140.54
+  },
+  "capture_view_bytes_max": 71611,
+  "capture_tick_ms": 164.16,
+  "capture_tick_what": "read capture_view",
+  "tool_count": 24,
+  "targets": {
+    "model_info_p50_ms": {
+      "target": 60.0,
+      "measured": 31.36,
+      "pass": true
+    },
+    "model_info_p95_ms": {
+      "target": 150.0,
+      "measured": 35.46,
+      "pass": true
+    },
+    "capture_view_max_ms": {
+      "target": 400.0,
+      "measured": 196.66,
+      "pass": true
+    },
+    "build_from_autocad_max_s": {
+      "target": 3.0,
+      "measured": 0.85,
+      "pass": true
+    },
+    "max_tick_ms": {
+      "target": 100.0,
+      "measured": 46.95,
+      "pass": true
+    }
+  },
+  "passed": true
+}

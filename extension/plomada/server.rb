@@ -84,6 +84,8 @@ module Plomada
       @job_seq = 0
       @in_tick = false
       @max_tick_ms = 0.0
+      @max_tick_what = 'idle'
+      @tick_what = []
       @last_tick_ms = 0.0
       @ticks = 0
       @timer = nil
@@ -118,6 +120,7 @@ module Plomada
 
     def reset_max_tick!
       @max_tick_ms = 0.0
+      @max_tick_what = 'idle'
     end
 
     # --- the tick -----------------------------------------------------------------
@@ -126,6 +129,7 @@ module Plomada
       return if @in_tick # a modal dialog opened inside a handler pumps timers too
 
       @in_tick = true
+      @tick_what = []
       t0 = @clock.now_ms
       begin
         accept_clients(t0)
@@ -141,7 +145,10 @@ module Plomada
       ensure
         dt = @clock.now_ms - t0
         @last_tick_ms = dt
-        @max_tick_ms = dt if dt > @max_tick_ms
+        if dt > @max_tick_ms
+          @max_tick_ms = dt
+          @max_tick_what = @tick_what.empty? ? 'io' : @tick_what.join(', ')
+        end
         @ticks += 1
         @in_tick = false
       end
@@ -363,6 +370,7 @@ module Plomada
     end
 
     def run_read(req)
+      @tick_what << "read #{req.method}"
       ctx = Ctx.new(server: self, client_id: req.client.id, request_id: req.id, model: @model.call)
       result = req.handler.impl.call(req.params, ctx)
       reply(req.client, req.id, result)
@@ -391,6 +399,7 @@ module Plomada
 
       t0 = @clock.now_ms
       job.state = 'running'
+      @tick_what << "#{job.request.method} step #{job.steps_run + 1}"
       result = begin
         if job.needs_operation?
           with_operation(job) { job.step(@cfg[:job_step_budget_ms]) }
@@ -427,6 +436,7 @@ module Plomada
         end
         model = @model.call
         ctx = Ctx.new(server: self, client_id: req.client.id, request_id: req.id, model: model)
+        @tick_what << "prepare #{req.method}"
         begin
           job = req.handler.impl.call(req.params, ctx)
         rescue Error => e
@@ -647,7 +657,8 @@ module Plomada
         'connected' => true, 'server_version' => VERSION, 'protocol' => @cfg[:protocol],
         'capabilities' => @capabilities, 'port' => @port, 'client_id' => ctx.client_id,
         'clients' => @clients.size, 'queue_length' => @queue.size, 'job' => job,
-        'max_tick_ms' => @max_tick_ms.round(2), 'last_tick_ms' => @last_tick_ms.round(2),
+        'max_tick_ms' => @max_tick_ms.round(2), 'max_tick_what' => @max_tick_what,
+        'last_tick_ms' => @last_tick_ms.round(2),
         'ticks' => @ticks, 'tick_interval_ms' => @interval_ms, 'allow_ruby' => @allow_ruby.call,
         'uptime_s' => ((@clock.now_ms - (@started_at || @clock.now_ms)) / 1000.0).round(1)
       }.merge(@info)

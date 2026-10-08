@@ -232,6 +232,7 @@ module Plomada
     # Scenes with a level two-point camera at eye height, and their images.
     module Scenes
       STYLES = { 'shaded' => 2, 'lines_only' => 0 }.freeze
+      AUTO_HIDDEN_TAGS = %w[Ambientes].freeze # room labels: plan annotation, not part of a render
 
       module_function
 
@@ -255,21 +256,117 @@ module Plomada
           raise InvalidParams, 'eye and target are the same point; move the target'
         end
 
-        units = [["scene #{name}", lambda {
-          view = model.active_view
-          view.camera = Sketchup::Camera.new(SU.pt(eye), SU.pt(target), Z_AXIS, true, fov)
-          model.rendering_options['RenderMode'] = STYLES[style]
-          page = model.pages[name] || model.pages.add(name)
-          page.transition_time = 0.0 if page.respond_to?(:transition_time=)
-          page.update
-          SU.set_attrs(page, 'kind' => 'scene', 'style' => style, 'eye' => JSON.generate(eye),
-                             'target' => JSON.generate(target), 'two_point' => two_point)
-          model.pages.selected_page = page
-        }]]
+        units = [["scene #{name}", -> { add_page(model, name, eye, target, fov, style, two_point) }]]
         UnitJob.new('Plomada: create scene', units) do
           { 'scene' => name, 'eye_mm' => eye, 'target_mm' => target, 'fov' => fov, 'two_point' => two_point,
             'style' => style, 'scenes' => model.pages.size }
         end
+      end
+
+      # Sets the camera and saves it as scene +name+ (created or updated).
+      # +hidden_tags+ are hidden in this scene only (the room labels, for renders).
+      def add_page(model, name, eye, target, fov, style, two_point, attrs = {}, hidden_tags: [])
+        model.active_view.camera = Sketchup::Camera.new(SU.pt(eye), SU.pt(target), Z_AXIS, true, fov)
+        model.rendering_options['RenderMode'] = STYLES[style]
+        page = model.pages[name] || model.pages.add(name)
+        page.transition_time = 0.0 if page.respond_to?(:transition_time=)
+        hidden = hidden_tags.filter_map { |t| model.layers[t] }.select(&:visible?)
+        hidden.each { |l| l.visible = false }
+        page.update
+        hidden.each { |l| l.visible = true }
+        SU.set_attrs(page, { 'kind' => 'scene', 'style' => style, 'eye' => JSON.generate(eye),
+                             'target' => JSON.generate(target), 'two_point' => two_point }.merge(attrs))
+        model.pages.selected_page = page
+        page
+      end
+
+      # Scenes made without coordinates: one interior per room (I_N00_01_Living),
+      # eye height above its storey's floor, plus four eye-level exteriors
+      # (E1_suroeste ...) and one aerial (A_aerea) around everything Plomada
+      # built. replace first erases the scenes an earlier auto_scenes made.
+      def auto(params, ctx)
+        model = ctx.model
+        style = Capture.style!(params.fetch('style', 'shaded') || 'shaded', 'style', STYLES.keys)
+        interior = params.fetch('interior', true) != false
+        exterior = params.fetch('exterior', true) != false
+        fov_in = params['interior_fov'].nil? ? CONFIG[:interior_fov_deg] : Plan.positive(params['interior_fov'], 'interior_fov', 120.0)
+        fov_out = params['exterior_fov'].nil? ? CONFIG[:exterior_fov_deg] : Plan.positive(params['exterior_fov'], 'exterior_fov', 120.0)
+        eye_h = CONFIG[:eye_height_mm]
+        storeys = params['storey'].nil? ? Storeys.list(model).map { |s| s['name'] } : [Storeys.resolve(model, params['storey'])]
+        raise InvalidParams, 'no Plomada walls in this model; build a house before auto_scenes' if storeys.empty?
+
+        cams = []
+        skipped = []
+        if interior
+          storeys.each do |storey|
+            plan = Plan.normalize(PlanReader.read(model, storey).merge('storey' => nil))
+            elevation = PlanReader.storey_settings(model, storey).fetch('elevation', 0.0).to_f
+            # The stairs of this storey and the wells of the ones coming up block the eye like walls.
+            stairs = Storeys.entities(model, storey).select { |e| SU.kind(e) == 'stair' }
+                            .map { |g| JSON.parse(g.get_attribute(DICT, 'footprint')) }
+            edges = Geometry.wall_body_edges(plan['walls']) +
+                    Geometry.ring_edges(stairs + Storeys.wells(model, elevation, storey))
+            axis = Geometry.dominant_axis(plan['walls'])
+            plan['rooms'].each do |room|
+              cam = Geometry.room_camera(room['at'], edges, axis)
+              next skipped << "#{storey}/#{room['id']}" unless cam
+
+              z = elevation + eye_h
+              cams << { name: scene_name('I', storey, room['number'] || room['id'], room['name']),
+                        eye: cam[:eye] + [z], target: cam[:target] + [z], fov: fov_in, view: 'interior',
+                        room: room['id'], storey: storey }
+            end
+          end
+        end
+        if exterior
+          points = []
+          SU.plomada_entities(model).each do |e|
+            world_points(e.entities, e.transformation, points) if e.is_a?(Sketchup::Group) && SU.kind(e) != 'room'
+          end
+          Geometry.exterior_cameras(points.uniq, eye_h, fov_out).each do |c|
+            cams << c.merge(fov: fov_out, view: 'exterior')
+          end
+          cams << { name: 'A_aerea', view: 'aerial', fov: CONFIG[:scene_fov_deg] }
+        end
+        old = params.fetch('replace', true) == false ? [] : model.pages.select { |pg| pg.get_attribute(DICT, 'auto') }
+        units = [['erase earlier auto scenes', -> { old.each { |pg| model.pages.erase(pg) } }]]
+        cams.each do |c|
+          units << ["scene #{c[:name]}", lambda {
+            if c[:view] == 'aerial'
+              View.fit(model)
+              cam = model.active_view.camera
+              c[:eye] = SU.to_mm(cam.eye)
+              c[:target] = SU.to_mm(cam.target)
+              add_page(model, c[:name], c[:eye], c[:target], c[:fov], style, false, { 'auto' => true, 'view' => 'aerial' },
+                       hidden_tags: AUTO_HIDDEN_TAGS)
+            else
+              add_page(model, c[:name], c[:eye], c[:target], c[:fov], style, true,
+                       { 'auto' => true, 'view' => c[:view], 'room' => c[:room], 'storey' => c[:storey] },
+                       hidden_tags: AUTO_HIDDEN_TAGS)
+            end
+          }]
+        end
+        UnitJob.new('Plomada: auto scenes', units) do
+          { 'scenes' => cams.map { |c| { 'name' => c[:name], 'view' => c[:view], 'eye_mm' => c[:eye]&.map { |v| v.round(1) },
+                                         'target_mm' => c[:target]&.map { |v| v.round(1) }, 'fov' => c[:fov] } },
+            'rooms_skipped' => skipped, 'erased' => old.size, 'total_scenes' => model.pages.size }
+        end
+      end
+
+      # Every vertex under +ents+ in world mm, rounded to 0.1 mm (so uniq merges them).
+      def world_points(ents, tr, out)
+        ents.each do |e|
+          if e.is_a?(Sketchup::Edge)
+            e.vertices.each { |v| out << SU.to_mm(v.position.transform(tr)).map { |x| x.round(1) } }
+          elsif e.is_a?(Sketchup::Group)
+            world_points(e.entities, tr * e.transformation, out)
+          end
+        end
+        out
+      end
+
+      def scene_name(prefix, *parts)
+        ([prefix] + parts.compact.map { |x| x.to_s.strip.gsub(/\s+/, '_') }).reject(&:empty?).join('_')
       end
 
       # One image per scene, one scene per step; camera and render mode are

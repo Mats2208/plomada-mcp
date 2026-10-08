@@ -101,6 +101,8 @@ module Plomada
     captures_kept: 20,                     # capture files kept in %TEMP%
     eye_height_mm: 1600.0,                 # mm, scene camera eye height
     scene_fov_deg: 35.0,                   # degrees, scene camera field of view
+    interior_fov_deg: 60.0,                # degrees (vertical), auto_scenes room cameras
+    exterior_fov_deg: 40.0,                # degrees (vertical), auto_scenes eye-level exteriors
     export_width: 2048,                    # px, export_scene_images default
     export_height: 1365,                   # px, export_scene_images default
     list_page_size: 200,                   # entities per list_entities page

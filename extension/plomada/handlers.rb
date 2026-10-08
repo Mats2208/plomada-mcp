@@ -43,6 +43,7 @@ module Plomada
       r.job('add_roof') { |p, ctx| SU::Edit.add_roof(p, ctx) }
       r.job('set_material') { |p, ctx| SU::Edit.set_material(p, ctx) }
       r.job('create_scene') { |p, ctx| SU::Scenes.create(p, ctx) }
+      r.job('auto_scenes') { |p, ctx| SU::Scenes.auto(p, ctx) }
       r.job('export_scene_images') { |p, ctx| SU::Scenes.export_images(p, ctx) }
       r.job('export_model') { |p, ctx| SU::Export.job(p, ctx) }
       r.job('reset_plomada') { |p, ctx| SU::Edit.reset(p, ctx) }

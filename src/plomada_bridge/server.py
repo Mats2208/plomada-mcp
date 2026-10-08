@@ -525,6 +525,33 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
 
     @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
     @exact_errors
+    async def auto_scenes(
+        ctx: Context,
+        interior: Annotated[bool, Field(description="one scene per room, from a corner at eye height")] = True,
+        exterior: Annotated[bool, Field(description="four eye-level corner views and one aerial")] = True,
+        storey: Annotated[
+            str | None, Field(pattern=STOREY_PATTERN, description="rooms of this storey only; default every storey")
+        ] = None,
+        style: Annotated[Literal["shaded", "lines_only"], Field(description="scene render mode")] = "shaded",
+        interior_fov: Annotated[float, Field(gt=0, le=120, description="room cameras, vertical degrees")] = 60.0,
+        exterior_fov: Annotated[float, Field(gt=0, le=120, description="exterior cameras, vertical degrees")] = 40.0,
+        replace: Annotated[bool, Field(description="first erase the scenes an earlier auto_scenes made")] = True,
+    ) -> dict[str, Any]:
+        """Creates the scenes for rendering without coordinates: I_<storey>_<room> inside every room
+        (two-point, from the corner with the longest view across), E1_suroeste..E4_noroeste at eye level
+        around the building, and A_aerea. Then export_scene_images renders them all."""
+        params: dict[str, Any] = {
+            "interior": interior,
+            "exterior": exterior,
+            "style": style,
+            "interior_fov": interior_fov,
+            "exterior_fov": exterior_fov,
+            "replace": replace,
+        }
+        return await b.mutate("auto_scenes", "auto_scenes", with_storey(params, storey), ctx)
+
+    @mcp.tool(annotations=_mut(destructive=True, idempotent=True))
+    @exact_errors
     async def export_scene_images(
         dir: Annotated[str, Field(min_length=1, description="folder for the images (created if missing)")],
         ctx: Context,

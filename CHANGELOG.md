@@ -4,6 +4,63 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-08
+
+Real furniture and the site around the house. The test was a complete house drawn with AutoCAD MCP Pro
+(`tests/fixtures/casa_completa_N00.dxf`): a house, a separate garage with a sectional door, a driveway with two cars,
+an entrance path, a deck, a pool, a fence, trees and people. It was built live in SketchUp 2025 and checked in its 10
+automatic scenes.
+
+### Added
+
+- **Component library.** A furniture block becomes a real 3D model wherever `mapa_componentes.json` maps it, and a
+  massing box otherwise. The library is a folder: `PLOMADA_LIBRARY`, or `biblioteca` next to the repo. Each map entry
+  takes these fields:
+  - `fit`:
+    - `real`: own size, back on the block's back edge.
+    - `footprint`: scaled into the block, for models drawn at the wrong scale.
+    - `native`: site objects, centred on the block.
+  - `rot`: turns a model whose front does not face -y.
+  - `part`: one object out of a file that holds several.
+  - `scale`
+
+  A model is loaded once per model and cleaned of what downloads carry besides the object: hidden geometry,
+  background images, texts, dimensions and guides. `build_from_autocad` and `build_plan` take
+  `furniture="library"` (the default) or `"massing"`.
+- **The site, read from the ground-floor DXF**, on tag `Entorno`:
+  - **Objects.** `SITIO_<NAME>` blocks (origin at the object's centre) become library components standing on the
+    ground, or on the paving or deck they fall on. The names are `ARBOL`, `PALMERA`, `PINO`, `ARBUSTO`, `SETO`,
+    `MACETA`, `AUTO`, `SUV`, `PICKUP`, `REPOSERA`, `PARRILLA`, `MESA_JARDIN`, `PERGOLA`, `PERSONA` and `FAROLA`.
+  - **Paving and decks.** Closed polylines on `SITIO-PAVIMENTO` and `SITIO-DECK`.
+  - **Pools.** Closed polylines on `SITIO-PILETA`, built with a coping, walls, floor and water 250 mm down.
+    `add_terrain` leaves the coping open.
+  - **Fences.** Polylines on `SITIO-CERCO`, 1.8 m boards.
+- **Sectional garage doors.** A door at least 2.2 m wide (`garage_door_min_width_mm`) is built as a frame and four
+  panels instead of a hinged leaf.
+- **New materials:** `MAT_pavimento`, `MAT_agua` and `MAT_porton`.
+
+### Changed
+
+- **Exterior cameras of `auto_scenes`** frame the buildings, not the whole site. An eye that would look across a
+  fence moves inside it, and an eye that would stand inside a parked car or a tree trunk moves past it.
+- **Tests.** 128 minitest tests and 55 pytest tests, up from 112 and 52. Still 26 tools.
+
+### Measured
+
+- **Complete house.** 6 walls, 13 openings, 17 furniture pieces (10 real models; the 7 the library has no model for
+  stay massing), 21 site objects, 2 pavings, a deck, a pool and a fence. Built in 14.0 s with the wall group
+  manifold.
+
+### Known limits
+
+- **Loading a library model blocks SketchUp.** It blocks for up to 3.3 s per model, the first time that model enters
+  a SketchUp model.
+- **The site is read from the ground storey only.** On upper storeys Plomada warns and skips it.
+- **The terrain is flat.**
+- **`get_plan` does not return the site.**
+- **The library does not ship with Plomada.** The models come from 3D Warehouse under its terms; the repo carries
+  only the map format (`docs/mapa_componentes.example.json`).
+
 ## [0.2.0] - 2026-10-08
 
 Several floors, stairs, hip roofs, furniture, terrain and cameras that need no coordinates. Every feature was drawn in
@@ -124,6 +181,7 @@ First release. The SketchUp extension and the Python bridge version together.
 - PBR is detected through `Sketchup::Material#metallic_factor=`, the method SketchUp 2025 actually has, not through
   `metalness=`.
 
+[0.3.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.2.0
 [0.1.1]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.0

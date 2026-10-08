@@ -1,0 +1,184 @@
+{
+ "_doc": "Plomada 0.3: each AutoCAD block (AutoCAD MCP Pro catalogue item, DesignCenter block name or SITIO_ block) -> the 3D component that replaces its massing. Paths are relative to C:/mcp/biblioteca; skp null keeps the massing. fit: real = furniture at its own size (times scale), back on the block's back edge; footprint = furniture scaled to fit the block's w x d (for models drawn at the wrong scale); native = site object at its own size (times scale), centred on the block. rot (degrees CCW) turns a model whose front does not face -y (the SketchUp Front view) until it does. part = index of the one top-level group/component to use from a file that holds several objects.",
+ "catalogo_acadmcp": {
+  "double_bed": {
+   "skp": "sketchup/dormitorio/30_respaldo_cama_bed_support_bed.skp",
+   "fit": "real",
+   "rot": 180,
+   "note": "comes with its two nightstands"
+  },
+  "single_bed": {
+   "skp": "sketchup/dormitorio/31_single_spring_bed.skp",
+   "fit": "real",
+   "rot": 270
+  },
+  "wardrobe": {
+   "skp": null,
+   "fit": "real",
+   "note": "the download was a whole walk-in closet; keep the massing until a single wardrobe is found"
+  },
+  "nightstand": {
+   "skp": "sketchup/dormitorio/33_bedside_table_brass_legs.skp",
+   "fit": "real"
+  },
+  "sofa_3_seat": {
+   "skp": "sketchup/living/20_sofa_modern.skp",
+   "fit": "footprint",
+   "note": "modelled ~1.4x too big; scaled to the block"
+  },
+  "armchair": {
+   "skp": "sketchup/muebles/sillon_respaldo_alto/model.dae",
+   "fit": "real"
+  },
+  "chair": {
+   "skp": "sketchup/living/21_vitra_eames_plastic_armchair_daw_1950.skp",
+   "fit": "real",
+   "part": 1,
+   "note": "the file has three chairs; part 1 is the black one"
+  },
+  "coffee_table": {
+   "skp": "sketchup/living/22_modern_coffee_table.skp",
+   "fit": "footprint"
+  },
+  "dining_table_4": {
+   "skp": "sketchup/comedor/26_dining_table.skp",
+   "fit": "real",
+   "note": "an 8-seat set, 1.8 x 3.3 m; replace with a 4-seat one"
+  },
+  "desk": {
+   "skp": "sketchup/estudio/38_mid_century_modern_desk.skp",
+   "fit": "real",
+   "note": "comes with its chair"
+  },
+  "kitchen_counter": {
+   "skp": null,
+   "fit": "massing",
+   "note": "the downloaded kitchens are whole layouts; keep the counter massing"
+  },
+  "fridge": {
+   "skp": "sketchup/cocina/28_refrigerator.skp",
+   "fit": "real",
+   "rot": 270
+  },
+  "bookshelf": {
+   "skp": null,
+   "fit": "massing"
+  },
+  "wc": {
+   "skp": "sketchup/bano/34_toilet.skp",
+   "fit": "real",
+   "rot": 270
+  },
+  "bidet": {
+   "skp": null,
+   "fit": "massing"
+  },
+  "wall_basin": {
+   "skp": null,
+   "fit": "real",
+   "note": "the download was a 2.5 m double vanity; keep the massing"
+  },
+  "shower_tray": {
+   "skp": "sketchup/bano/36_shower.skp",
+   "fit": "real"
+  },
+  "bathtub": {
+   "skp": "sketchup/bano/37_bathtub_wanna.skp",
+   "fit": "real",
+   "rot": 90
+  },
+  "kitchen_sink": {
+   "skp": null,
+   "fit": "massing"
+  },
+  "washing_machine": {
+   "skp": null,
+   "fit": "massing"
+  }
+ },
+ "designcenter": {
+  "Bed - Queen": "double_bed",
+  "Sofa - Roundback 7 ft.": "sofa_3_seat",
+  "Sofa - Roundback Loveseat 5 ft.": "sofa_3_seat",
+  "Dining Set - 36 x 72 in.": "dining_table_4",
+  "Desk - 30 x 60 in.": "desk",
+  "Table - Square Woodgrain 42 x 42 in.": "coffee_table",
+  "Refrigerator-2 door - 36 in top": "fridge",
+  "Toilet - top": "wc",
+  "Bath Tub - 26 x 60 in.": "bathtub",
+  "Sink - Oval top": "wall_basin",
+  "Plant - Rubber or Philodendron": "potted_plant"
+ },
+ "sitio": {
+  "car_sedan": {
+   "skp": "sketchup/autos/01_2017_audi_a3_sedan.skp",
+   "fit": "native"
+  },
+  "car_suv": {
+   "skp": "sketchup/autos/02_suv_audi_q7.skp",
+   "fit": "native"
+  },
+  "tree": {
+   "skp": "sketchup/vegetacion/06_ficus_tree.skp",
+   "fit": "native"
+  },
+  "palm": {
+   "skp": "sketchup/vegetacion/07_palm.skp",
+   "fit": "native",
+   "scale": 2.5
+  },
+  "pine": {
+   "skp": "sketchup/vegetacion/08_3d_tree_pine.skp",
+   "fit": "native",
+   "scale": 3.0
+  },
+  "hedge": {
+   "skp": "sketchup/vegetacion/09_hedge.skp",
+   "fit": "native"
+  },
+  "potted_plant": {
+   "skp": "sketchup/vegetacion/10_potted_plant.skp",
+   "fit": "native"
+  },
+  "garage_door": {
+   "skp": "sketchup/exterior/12_overhead_garage_door.skp",
+   "fit": "footprint"
+  },
+  "outdoor_dining": {
+   "skp": "sketchup/exterior/14_dedon_outdoor_furniture.skp",
+   "fit": "native",
+   "part": 0
+  },
+  "sun_lounger": {
+   "skp": "sketchup/exterior/14_dedon_outdoor_furniture.skp",
+   "fit": "native",
+   "part": 11
+  },
+  "bbq": {
+   "skp": "sketchup/exterior/16_barbeque.skp",
+   "fit": "native"
+  },
+  "pergola": {
+   "skp": "sketchup/exterior/17_outdoor_kitchen_pergolas.skp",
+   "fit": "native"
+  },
+  "fence": {
+   "skp": "sketchup/exterior/18_fences.skp",
+   "fit": "native"
+  },
+  "street_light": {
+   "skp": "sketchup/exterior/19_avenue_street_lighting_outdoor_lighting_.skp",
+   "fit": "native"
+  },
+  "person": {
+   "skp": "sketchup/personas/05_3d_female_adult_character_casual.skp",
+   "fit": "native"
+  },
+  "Tree - deciduous plan": "tree",
+  "Clump of Trees or Bushes - plan": "hedge",
+  "car_pickup": {
+   "skp": "sketchup/autos/03_chevy_silverado_pickup.skp",
+   "fit": "native"
+  }
+ }
+}

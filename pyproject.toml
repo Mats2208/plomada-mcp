@@ -1,6 +1,6 @@
 [project]
 name = "plomada-bridge"
-version = "0.2.0"
+version = "0.3.0"
 description = "Stdio MCP bridge that drives the Plomada SketchUp extension: AutoCAD plan in, exact 3D house out."
 readme = "README.md"
 license = "MIT"

@@ -4,7 +4,7 @@
 
 **Hand Claude an AutoCAD plan and get the exact 3D house in SketchUp: manifold walls, real openings, stairs, roofs, furniture, one Ctrl+Z per call.**
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/Mats2208/plomada-mcp/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/Mats2208/plomada-mcp/actions/workflows/ci.yml)
 [![SketchUp](https://img.shields.io/badge/SketchUp-2025%20Pro-005F9E?style=flat-square)](https://www.sketchup.com)
 [![Python](https://img.shields.io/badge/python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
@@ -65,18 +65,19 @@ pure Ruby, and builds the house inside a running SketchUp, one small step per UI
 |---|---|---|
 | **Walls** | One closed manifold per storey | Mitred L corners, T junctions trimmed to the near face, X crossings cut at the faces. No booleans, no `find_faces`. |
 | **Openings** | Real holes with reveals | Two jambs, a soffit, and a sill when the sill is above 0, in every opening. |
-| **Carpentry** | Window and door components | 50 × 50 mm frame ring and a 6 mm pane at mid-thickness; 40 mm door leaf hinged per the plan's hand and swing. |
+| **Carpentry** | Window and door components | 50 × 50 mm frame ring and a 6 mm pane at mid-thickness; 40 mm door leaf hinged per the plan's hand and swing; doors 2.2 m wide and over become sectional garage doors. |
 | **Storeys and stairs** | One DXF per floor, stacked | `storey="N01"` puts a floor on top of the one below. Its slab gets the wells of the stairs coming up, and the roof underneath goes. Straight, L and U stairs come from the AutoCAD stair records: concrete flights with a sloped soffit and a landing. |
 | **Roofs** | Flat · gable · hip | Hip roofs on any simple outline (L, T, U...), solved as a straight skeleton: ridges, hips and valleys at one pitch. Every building in the DXF gets its own slab and roof. |
-| **Furniture and ground** | Catalogue blocks · terrain | The 20 `arch_catalogue_insert` blocks (beds, sofas, tables, WC...) become massing components on tag `Mobiliario`. `add_terrain` lays a lawn slab around the buildings. |
+| **Furniture** | Real models from your library | The 20 `arch_catalogue_insert` blocks (beds, sofas, tables, WC...) become the 3D models `mapa_componentes.json` maps them to, at their real size, backs on the walls; a block with no model stays a massing box. On tag `Mobiliario`. |
+| **Site** | Read from the same DXF | `SITIO_` blocks become trees, palms, cars, loungers, people and street lights; polylines on `SITIO-PAVIMENTO`, `SITIO-DECK`, `SITIO-PILETA` and `SITIO-CERCO` become paving, decks, a sunk pool with water and fences. `add_terrain` lays the lawn around it all and leaves the pools open. |
 | **Rooms** | 3D labels | Name, number and m² on the floor of each room. |
 | **Undo** | One Ctrl+Z per tool call | All steps of a job chain into one operation. A failed, expired or cancelled job reverts itself. |
 | **Edits** | Move, resize, add | `move_opening`, `set_wall_height`, `add_wall`, `add_opening` re-solve from the plan stored in the model, never from the DXF. |
 | **Views** | Captures, scenes, exports | `auto_scenes` makes a camera inside every room plus four eye-level exteriors and an aerial, with no coordinates. JPEG captures under 350 KB, scene images, skp / fbx / obj export. |
 
 Everything is in millimetres and named for the studio pipeline: groups `N00_muros`, `N01_losa`, `N01_techo`,
-`N00_escalera_S1`; tags `Muros`, `Carpinterias`, `Losas`, `Escaleras`, `Ambientes`, `Mobiliario`, `Entorno`; materials
-`MAT_revoque_blanco`, `MAT_vidrio`, `MAT_madera`, `MAT_mobiliario` and the rest.
+`N00_escalera_S1`, `pileta_<id>`; tags `Muros`, `Carpinterias`, `Losas`, `Escaleras`, `Ambientes`, `Mobiliario`,
+`Entorno`; materials `MAT_revoque_blanco`, `MAT_vidrio`, `MAT_madera`, `MAT_pavimento`, `MAT_agua` and the rest.
 
 <table>
 <tr>
@@ -88,6 +89,19 @@ Everything is in millimetres and named for the studio pipeline: groups `N00_muro
 <sub>The two-storey fixture: two DXF files drawn with AutoCAD MCP Pro (<code>tests/fixtures/casa_2_plantas_N00.dxf</code>,
 <code>_N01.dxf</code>), a 17-riser L stair, 16 catalogue pieces. Left and right are <code>auto_scenes</code> output, the middle a
 scene placed by hand at the stair, before the furniture went in.</sub>
+
+<table>
+<tr>
+<td width="50%"><img src="docs/img/completa_pileta.jpg" alt="Back garden of the complete house: pool with water and coping, outdoor dining set, loungers, barbecue and trees" width="100%"/></td>
+<td width="50%"><img src="docs/img/completa_entrada.jpg" alt="Front of the complete house: entrance path, palm, hedge, potted plants and a person by the door" width="100%"/></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/img/completa_garaje.jpg" alt="The separate garage with its sectional door and the driveway with a parked car" width="100%"/></td>
+<td width="50%"><img src="docs/img/completa_living.jpg" alt="Living room scene: sofa, dining set and fridge from the component library" width="100%"/></td>
+</tr>
+</table>
+<sub>The complete-house fixture (<code>tests/fixtures/casa_completa_N00.dxf</code>): one DXF with the house, the garage,
+17 furniture blocks and the site. All four images are <code>auto_scenes</code> output, untouched.</sub>
 
 ## Every number here was measured
 
@@ -129,7 +143,7 @@ The script copies `plomada.rb` and `plomada\` into the SketchUp Plugins folder a
 It registers `plomada-mcp` for Claude Code with `claude mcp add -s user sketchup`. It also offers, y/n, to move the old
 Tarkiin plugin out of the Plugins folder. Restart SketchUp, reconnect the MCP, and call `status`.
 
-To install by hand instead, add [`plomada-0.2.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
+To install by hand instead, add [`plomada-0.3.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
 **Extensions > Extension Manager > Install Extension**, then register `.venv\Scripts\plomada-mcp.exe` as a stdio server.
 
 ## Use
@@ -151,6 +165,44 @@ build_from_autocad casa_N01.dxf storey=N01 roof=hip  -> elevation 2950, stair_we
 add_terrain                                          -> Terreno 23 x 21 m, top at -150
 auto_scenes                                          -> I_N00_01_Living ... I_N01_13_Hall, E1_suroeste ... E4_noroeste, A_aerea
 export_scene_images dir=.../04_pases                 -> 10 PNG
+```
+
+### Furniture library and site
+
+`build_from_autocad` places real models for the furniture blocks when it finds a component library: the folder in
+`PLOMADA_LIBRARY`, or `biblioteca` next to the repo. Inside it, `mapa_componentes.json` maps each block to a `.skp`.
+Pass `furniture="massing"` for boxes only. The format is in [`docs/mapa_componentes.example.json`](docs/mapa_componentes.example.json):
+
+```json
+"fridge": { "skp": "sketchup/cocina/28_refrigerator.skp", "fit": "real", "rot": 270 },
+"chair":  { "skp": "sketchup/living/21_eames.skp", "fit": "real", "part": 1 },
+"palm":   { "skp": "sketchup/vegetacion/07_palm.skp", "fit": "native", "scale": 2.5 }
+```
+
+The fields:
+
+- **`fit`:**
+  - `real`: the model's own size, back on the wall.
+  - `footprint`: scaled into the block, for a model drawn at the wrong scale.
+  - `native`: a site object at its own size, centred on its block.
+- **`rot`:** turns a model whose front does not face -y (the SketchUp Front view).
+- **`part`:** picks one object from a file that holds several.
+
+Hidden geometry, background images and texts that downloads carry are dropped on load.
+
+The site lives in the ground-floor DXF:
+
+| In AutoCAD | In SketchUp |
+|---|---|
+| Block `SITIO_ARBOL`, `PALMERA`, `PINO`, `ARBUSTO`, `MACETA`, `AUTO`, `SUV`, `PICKUP`, `REPOSERA`, `PARRILLA`, `MESA_JARDIN`, `PERSONA`, `FAROLA` (origin at the centre, long side along x) | That library component, standing on the ground or on the paving under it |
+| Closed polyline on `SITIO-PAVIMENTO` / `SITIO-DECK` | Paving / timber deck slab, its top 20 mm under the floor |
+| Closed polyline on `SITIO-PILETA` | A pool 1.5 m deep: coping, walls, floor, water 250 mm down |
+| Polyline on `SITIO-CERCO` | A fence of 1.8 m boards |
+
+```text
+build_from_autocad casa_completa_N00.dxf -> furniture 17 (library), site objects 21, paving 2, decks 1, pools 1, fences 1, 14.0 s
+add_terrain margin=2000                  -> Terreno 35 x 36 m, 3 holes (house, garage, pool)
+auto_scenes                              -> 5 rooms, 4 exteriors inside the fence, 1 aerial
 ```
 
 | Kind | Tools |
@@ -199,7 +251,7 @@ source.
 
 | | Transport | Auth | Ruby eval by default | Architecture tools | Needs booleans | Tests |
 |---|---|---|---|---|---|---|
-| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, storeys, stairs, slabs, flat/gable/hip roofs, furniture, terrain, rooms, automatic scenes | No | 112 minitest + 52 pytest, live e2e, bench |
+| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, storeys, stairs, slabs, flat/gable/hip roofs, furniture from a model library, site (paving, pools, fences, trees, cars), terrain, rooms, automatic scenes | No | 128 minitest + 55 pytest, live e2e, bench |
 | [Tarkiin/SketchUp-MCP](https://github.com/Tarkiin/SketchUp-MCP) | HTTP on 127.0.0.1:8080, served by Ruby threads, `Access-Control-Allow-Origin: *` | None | On | Primitives and `create_roof_truss` | No | None |
 | [zinin/sketchup-mcp2](https://github.com/zinin/sketchup-mcp2) | Length-prefixed JSON-RPC on TCP, UI-timer pump, stdio bridge | None (loopback default) | On (`eval_enabled: true`) | Woodworking joints | Yes (`Group#subtract`) | Ruby minitest + Python |
 | [PMajesty/sk_ruby_mcp](https://github.com/PMajesty/sk_ruby_mcp) | Streamable HTTP inside SketchUp, Host/Origin guard, no bridge | Optional, empty by default | On | Massing boxes, façade openings as glued components | No | Ruby test suite + soak scripts |
@@ -214,8 +266,12 @@ source.
   than 5°.
 - **Roofs.** A gable needs a rectangular footprint. A hip takes any simple outline but no courtyard, and an overhang that
   makes the eave line cross itself is refused.
-- **Furniture is massing too.** A few boxes per catalogue item, for scenes and render guidance; blocks outside the
-  AutoCAD MCP Pro catalogue are skipped with a warning.
+- **The library does not ship with Plomada.** It is your own folder of models (3D Warehouse downloads keep their own
+  terms); without it, or for a block it does not map, furniture is a few massing boxes. Blocks outside the AutoCAD MCP
+  Pro catalogue are skipped with a warning. Loading a library model blocks SketchUp for up to 3 s per model, the first
+  time it enters a SketchUp model.
+- **The site is flat and ground-floor only.** The terrain is one level slab, the site is read from the ground storey's
+  DXF, and `get_plan` does not return it.
 - **`export_model` skp needs a model saved once.** SketchUp refuses to copy an untitled model, and `Model#save` can
   raise a modal prompt that would freeze the pump.
 - **`execute_ruby` is a guard against mistakes, not a sandbox.** It is off until you tick the box in
@@ -224,8 +280,8 @@ source.
 ## Development
 
 ```powershell
-uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (52 tests)
-ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (112 tests, Ruby 3.2, no SketchUp)
+uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (55 tests)
+ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (128 tests, Ruby 3.2, no SketchUp)
 uv run ruff check . ; uv run ruff format --check .
 uv run python scripts/e2e_house.py        # live: needs SketchUp with the extension
 uv run python scripts/bench.py --certify  # live: writes bench/results-<date>.json
@@ -244,7 +300,7 @@ extension/plomada.rb        loader (registers the extension)
 extension/plomada/          the extension: pump, protocol, geometry/ (pure Ruby), su/ (SketchUp side)
 src/plomada_bridge/         the stdio MCP server: tools, socket client, DXF reader, pydantic models
 test/                       minitest suite with FakeSocket, FakeModel, FakeEntities, FakeView
-tests/                      pytest suite and fixtures (the reference house, the four test buildings, the two-storey house)
+tests/                      pytest suite and fixtures (the reference house, the four test buildings, the two-storey house, the complete house with its site)
 scripts/                    install.ps1, e2e_house.py, bench.py, build_rbz.py, check_compat.py
 bench/                      measured results
 docs/img/                   images from the e2e run

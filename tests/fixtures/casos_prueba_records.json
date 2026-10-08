@@ -1,0 +1,1087 @@
+[
+ {
+  "axis": [
+   [
+    7060.0,
+    3560.0
+   ],
+   [
+    11900.0,
+    3560.0
+   ]
+  ],
+  "closed": false,
+  "id": "P1",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    7060.0,
+    5460.0
+   ],
+   [
+    11900.0,
+    5460.0
+   ]
+  ],
+  "closed": false,
+  "id": "P2",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    100.0,
+    100.0
+   ],
+   [
+    11900.0,
+    100.0
+   ],
+   [
+    11900.0,
+    8900.0
+   ],
+   [
+    100.0,
+    8900.0
+   ]
+  ],
+  "closed": true,
+  "id": "EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2200.0,
+  "id": "D1",
+  "kind": "opening",
+  "offset": 5500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 1000.0
+ },
+ {
+  "hand": "left",
+  "height": 2600.0,
+  "id": "W1",
+  "kind": "opening",
+  "offset": 700.0,
+  "opening_kind": "window",
+  "sill": 0.0,
+  "swing": "in",
+  "tag": "W1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 4200.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W2",
+  "kind": "opening",
+  "offset": 8500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W2",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 600.0,
+  "id": "W3",
+  "kind": "opening",
+  "offset": 15800.0,
+  "opening_kind": "window",
+  "sill": 1600.0,
+  "swing": "in",
+  "tag": "W3",
+  "v": 1,
+  "wall": "EXT",
+  "width": 800.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W4",
+  "kind": "opening",
+  "offset": 21900.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W4",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W5",
+  "kind": "opening",
+  "offset": 26500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W5",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1100.0,
+  "id": "W6",
+  "kind": "opening",
+  "offset": 29300.0,
+  "opening_kind": "window",
+  "sill": 1100.0,
+  "swing": "in",
+  "tag": "W6",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 2600.0,
+  "id": "W7",
+  "kind": "opening",
+  "offset": 35300.0,
+  "opening_kind": "window",
+  "sill": 0.0,
+  "swing": "in",
+  "tag": "W7",
+  "v": 1,
+  "wall": "EXT",
+  "width": 3000.0
+ },
+ {
+  "axis": [
+   [
+    7060.0,
+    100.0
+   ],
+   [
+    7060.0,
+    8900.0
+   ]
+  ],
+  "closed": false,
+  "id": "B",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D2",
+  "kind": "opening",
+  "offset": 2200.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D2",
+  "v": 1,
+  "wall": "B",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D3",
+  "kind": "opening",
+  "offset": 3950.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D3",
+  "v": 1,
+  "wall": "B",
+  "width": 800.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D4",
+  "kind": "opening",
+  "offset": 5900.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D4",
+  "v": 1,
+  "wall": "B",
+  "width": 900.0
+ },
+ {
+  "area": 58480000.0,
+  "at": [
+   3000.0,
+   2500.0
+  ],
+  "id": "R1",
+  "kind": "room",
+  "name": "LIVING",
+  "number": "01",
+  "v": 1
+ },
+ {
+  "area": 15444000.0,
+  "at": [
+   9500.0,
+   1800.0
+  ],
+  "id": "R2",
+  "kind": "room",
+  "name": "DORMITORIO 2",
+  "number": "03",
+  "v": 1
+ },
+ {
+  "area": 8330400.0,
+  "at": [
+   9500.0,
+   4500.0
+  ],
+  "id": "R3",
+  "kind": "room",
+  "name": "BAÑO",
+  "number": "04",
+  "v": 1
+ },
+ {
+  "area": 15350400.0,
+  "at": [
+   9500.0,
+   7200.0
+  ],
+  "id": "R4",
+  "kind": "room",
+  "name": "DORMITORIO 1",
+  "number": "05",
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    20100.0,
+    100.0
+   ],
+   [
+    30100.0,
+    100.0
+   ],
+   [
+    30100.0,
+    5100.0
+   ],
+   [
+    25100.0,
+    5100.0
+   ],
+   [
+    25100.0,
+    10100.0
+   ],
+   [
+    20100.0,
+    10100.0
+   ]
+  ],
+  "closed": true,
+  "id": "L_EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2200.0,
+  "id": "D5",
+  "kind": "opening",
+  "offset": 2000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D5",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 1000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W8",
+  "kind": "opening",
+  "offset": 6000.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W8",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W9",
+  "kind": "opening",
+  "offset": 11500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W9",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W10",
+  "kind": "opening",
+  "offset": 16500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W10",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W11",
+  "kind": "opening",
+  "offset": 21500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W11",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W12",
+  "kind": "opening",
+  "offset": 26500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W12",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D6",
+  "kind": "opening",
+  "offset": 33000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D6",
+  "v": 1,
+  "wall": "L_EXT",
+  "width": 900.0
+ },
+ {
+  "axis": [
+   [
+    20100.0,
+    5100.0
+   ],
+   [
+    25100.0,
+    5100.0
+   ]
+  ],
+  "closed": false,
+  "id": "L_T1",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D7",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D7",
+  "v": 1,
+  "wall": "L_T1",
+  "width": 900.0
+ },
+ {
+  "axis": [
+   [
+    40100.0,
+    5100.0
+   ],
+   [
+    50100.0,
+    5100.0
+   ]
+  ],
+  "closed": false,
+  "id": "X_A",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D8",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D8",
+  "v": 1,
+  "wall": "X_A",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D9",
+  "kind": "opening",
+  "offset": 6500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D9",
+  "v": 1,
+  "wall": "X_A",
+  "width": 900.0
+ },
+ {
+  "axis": [
+   [
+    45100.0,
+    100.0
+   ],
+   [
+    45100.0,
+    10100.0
+   ]
+  ],
+  "closed": false,
+  "id": "X_B",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D10",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D10",
+  "v": 1,
+  "wall": "X_B",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D11",
+  "kind": "opening",
+  "offset": 6500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D11",
+  "v": 1,
+  "wall": "X_B",
+  "width": 900.0
+ },
+ {
+  "axis": [
+   [
+    40100.0,
+    100.0
+   ],
+   [
+    50100.0,
+    100.0
+   ],
+   [
+    50100.0,
+    10100.0
+   ],
+   [
+    40100.0,
+    10100.0
+   ]
+  ],
+  "closed": true,
+  "id": "X_EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2200.0,
+  "id": "D12",
+  "kind": "opening",
+  "offset": 31500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D12",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 1000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W13",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W13",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W14",
+  "kind": "opening",
+  "offset": 6500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W14",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W15",
+  "kind": "opening",
+  "offset": 11500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W15",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W16",
+  "kind": "opening",
+  "offset": 16500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W16",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W17",
+  "kind": "opening",
+  "offset": 21500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W17",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W18",
+  "kind": "opening",
+  "offset": 26500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W18",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W19",
+  "kind": "opening",
+  "offset": 36500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W19",
+  "v": 1,
+  "wall": "X_EXT",
+  "width": 2000.0
+ },
+ {
+  "axis": [
+   [
+    4100.0,
+    -19900.0
+   ],
+   [
+    4100.0,
+    -14900.0
+   ]
+  ],
+  "closed": false,
+  "id": "S_P1",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    9100.0,
+    -19900.0
+   ],
+   [
+    9100.0,
+    -14900.0
+   ]
+  ],
+  "closed": false,
+  "id": "S_P2",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    100.0,
+    -14900.0
+   ],
+   [
+    14100.0,
+    -14900.0
+   ]
+  ],
+  "closed": false,
+  "id": "S_C",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D13",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D13",
+  "v": 1,
+  "wall": "S_C",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D14",
+  "kind": "opening",
+  "offset": 6000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D14",
+  "v": 1,
+  "wall": "S_C",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D15",
+  "kind": "opening",
+  "offset": 11000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D15",
+  "v": 1,
+  "wall": "S_C",
+  "width": 900.0
+ },
+ {
+  "axis": [
+   [
+    5100.0,
+    -14900.0
+   ],
+   [
+    5100.0,
+    -9900.0
+   ]
+  ],
+  "closed": false,
+  "id": "S_P3",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D16",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D16",
+  "v": 1,
+  "wall": "S_P3",
+  "width": 800.0
+ },
+ {
+  "axis": [
+   [
+    10100.0,
+    -14900.0
+   ],
+   [
+    10100.0,
+    -9900.0
+   ]
+  ],
+  "closed": false,
+  "id": "S_P4",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D17",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D17",
+  "v": 1,
+  "wall": "S_P4",
+  "width": 800.0
+ },
+ {
+  "axis": [
+   [
+    100.0,
+    -19900.0
+   ],
+   [
+    14100.0,
+    -19900.0
+   ],
+   [
+    14100.0,
+    -9900.0
+   ],
+   [
+    100.0,
+    -9900.0
+   ]
+  ],
+  "closed": true,
+  "id": "S_EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W20",
+  "kind": "opening",
+  "offset": 1500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W20",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W21",
+  "kind": "opening",
+  "offset": 6000.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W21",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W22",
+  "kind": "opening",
+  "offset": 11000.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W22",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W23",
+  "kind": "opening",
+  "offset": 16500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W23",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1200.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W24",
+  "kind": "opening",
+  "offset": 21500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W24",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1200.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W25",
+  "kind": "opening",
+  "offset": 26000.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W25",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W26",
+  "kind": "opening",
+  "offset": 31000.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W26",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1500.0
+ },
+ {
+  "hand": "left",
+  "height": 2200.0,
+  "id": "D18",
+  "kind": "opening",
+  "offset": 41000.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D18",
+  "v": 1,
+  "wall": "S_EXT",
+  "width": 1000.0
+ },
+ {
+  "area": 18585600.0,
+  "at": [
+   2100.0,
+   -17400.0
+  ],
+  "id": "R5",
+  "kind": "room",
+  "name": "DORM A",
+  "number": "S1",
+  "v": 1
+ },
+ {
+  "area": 23619200.0,
+  "at": [
+   6600.0,
+   -17400.0
+  ],
+  "id": "R6",
+  "kind": "room",
+  "name": "DORM B",
+  "number": "S2",
+  "v": 1
+ },
+ {
+  "area": 23425600.0,
+  "at": [
+   11600.0,
+   -17400.0
+  ],
+  "id": "R7",
+  "kind": "room",
+  "name": "ESTUDIO",
+  "number": "S3",
+  "v": 1
+ },
+ {
+  "area": 23425600.0,
+  "at": [
+   2600.0,
+   -12400.0
+  ],
+  "id": "R8",
+  "kind": "room",
+  "name": "COCINA",
+  "number": "S4",
+  "v": 1
+ },
+ {
+  "area": 23619200.0,
+  "at": [
+   7600.0,
+   -12400.0
+  ],
+  "id": "R9",
+  "kind": "room",
+  "name": "BAÑO",
+  "number": "S5",
+  "v": 1
+ },
+ {
+  "area": 18585600.0,
+  "at": [
+   12100.0,
+   -12400.0
+  ],
+  "id": "R10",
+  "kind": "room",
+  "name": "LIVING",
+  "number": "S6",
+  "v": 1
+ },
+ {
+  "area": 47236000.0,
+  "at": [
+   22600.0,
+   2500.0
+  ],
+  "id": "R11",
+  "kind": "room",
+  "name": "L ESTAR",
+  "number": "L1",
+  "v": 1
+ },
+ {
+  "area": 23425600.0,
+  "at": [
+   42600.0,
+   7600.0
+  ],
+  "id": "R12",
+  "kind": "room",
+  "name": "X NO",
+  "number": "X1",
+  "v": 1
+ }
+]

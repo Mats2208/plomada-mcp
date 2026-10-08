@@ -102,3 +102,14 @@ def test_a_dxf_without_records_and_a_missing_file(tmp_path):
         read_plan(empty)
     with pytest.raises(DxfPlanError, match="is not a file"):
         read_plan(tmp_path / "nope.dxf")
+
+
+def test_unseen_four_building_plan_parses_completely():
+    """Four buildings drawn after 0.1.0 (L-shape, X crossing, six rooms, reference house)."""
+    parsed = read_plan(FIXTURES / "casos_prueba.dxf")
+    plan = parsed.plan
+    assert (len(plan.walls), len(plan.openings), len(plan.rooms)) == (15, 44, 12)
+    assert parsed.records == 71
+    assert sum(o.opening_kind == "door" for o in plan.openings) == 18
+    assert sum(o.opening_kind == "window" for o in plan.openings) == 26
+    assert {"L_EXT", "L_T1", "X_A", "X_B", "S_C"} <= {w.id for w in plan.walls}

@@ -251,6 +251,47 @@ class TestGeometryJunctionKinds < Minitest::Test
     assert_in_delta 200.0, ys.max, 1e-9
   end
 
+  # An L-shaped loop (counter-clockwise) whose reflex corner is (5000, 5000),
+  # with a partition running east along y 5000 that ends exactly on that
+  # corner, in line with the loop's arm. AutoCAD MCP Pro accepts this plan; the
+  # partition must butt into the perpendicular arm's inner face at x 4900.
+  def l_loop_with_partition_into_the_reflex_corner
+    loop = wall('L', [[0, 0], [10_000, 0], [10_000, 5000], [5000, 5000], [5000, 10_000], [0, 10_000]], closed: true)
+    [loop, wall('T', [[0, 5000], [5000, 5000]], thickness: 120.0)]
+  end
+
+  def test_partition_ending_on_a_reflex_corner_tees_into_the_perpendicular_arm
+    solver = G::WallSolver.new(l_loop_with_partition_into_the_reflex_corner, [], storey_height: 2800.0)
+    lay = solver.solve
+    t = solver.segs.find { |s| s.id == 'T' }
+    assert_equal :tee, t.end_cut[:kind]
+    assert_in_delta 4900.0, solver.to_world(t, [t.end_cut[:l], t.off(:l)])[0], 1e-6
+    assert_in_delta 4900.0, solver.to_world(t, [t.end_cut[:r], t.off(:r)])[0], 1e-6
+    rep = manifold(lay)
+    assert rep[:manifold], rep.inspect
+    assert_empty G.internal_faces(lay[:faces], lay[:solids], 1.0)
+  end
+
+  def test_partition_ending_on_a_free_wall_end_is_still_refused
+    # T stops inside A's band right at A's free end: there is no joint there to butt into.
+    walls = [wall('A', [[0, 0], [5000, 0]]), wall('T', [[5000, 3000], [5000, 50]], thickness: 120.0)]
+    err = assert_raises(Plomada::InvalidParams) { G.solve_walls(walls, [], storey_height: 2800.0) }
+    assert_match(/corner or end of wall A/, err.message)
+  end
+
+  # Two separate buildings in one plan each get an exterior outline, so each
+  # gets a slab and a roof; a closed wall drawn inside another (a courtyard
+  # or an inner room loop) is not a building of its own.
+  def test_every_separate_building_has_an_exterior_outline
+    a = wall('A', [[0, 0], [6000, 0], [6000, 4000], [0, 4000]], closed: true)
+    b = wall('B', [[20_000, 0], [26_000, 0], [26_000, 5000], [20_000, 5000]], closed: true)
+    inner = wall('I', [[1000, 1000], [3000, 1000], [3000, 3000], [1000, 3000]], closed: true, thickness: 120.0)
+    lay = G.solve_walls([a, b, inner], [], storey_height: 2800.0)
+    assert_equal %w[B A], lay[:exteriors].map { |e| e[:wall] }, 'largest first, inner loop excluded'
+    assert_equal 'B', lay[:exterior][:wall]
+    assert_in_delta(-100.0, lay[:exteriors][1][:points].map { |p| p[0] }.min, 1e-6)
+  end
+
   def test_shorter_stem_and_taller_stem_stay_manifold
     [2000.0, 3500.0].each do |h|
       walls = [wall('A', [[0, 0], [6000, 0]]), wall('S', [[3000, 0], [3000, 3000]], thickness: 120.0).merge('height' => h)]

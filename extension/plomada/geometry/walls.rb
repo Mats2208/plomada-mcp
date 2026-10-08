@@ -86,6 +86,7 @@ module Plomada
           solids: solids,
           z_cuts: @z_cuts,
           exterior: exterior_outline,
+          exteriors: exterior_outlines,
           walls: @walls.map { |w| w['id'] },
           warnings: @warnings
         }
@@ -161,7 +162,11 @@ module Plomada
         i2 = intersect(e1.seg, e1.right_side, e2.seg, e2.left_side)
         set_cut(e1, { e1.left_side => i1[0], e1.right_side => i2[0] }, :mitre)
         set_cut(e2, { e2.right_side => i1[1], e2.left_side => i2[1] }, :mitre)
+        cut_of(e1)[:partner] = e2
+        cut_of(e2)[:partner] = e1
       end
+
+      def cut_of(e) = e.at == :start ? e.seg.start_cut : e.seg.end_cut
 
       def straight_join!(e1, e2, who)
         p = e1.point
@@ -265,13 +270,27 @@ module Plomada
         end
         return nil if hits.empty?
 
-        hit = hits.min_by { |_, _, t| t.abs }
+        # At a mitred corner of a polyline the end lies on two arms; butt into
+        # the arm the stem actually crosses, never the one it runs in line with.
+        min_sin = Math.sin(@min_angle * Math::PI / 180.0)
+        crossing = hits.select { |v, _, _| Geometry.cross(e.dir, v.u).abs >= min_sin }
+        hits = crossing unless crossing.empty?
+        hit = hits.min_by { |v, s, t| [at_vertex?(v, s) ? 1 : 0, t.abs] }
         v, s, = hit
-        if s <= @tol || s >= v.len - @tol
+        if at_vertex?(v, s) && !mitred_vertex?(v, s)
           raise InvalidParams, "wall #{e.seg.id} ends at #{Geometry.fmt_pt(p)}, on the corner or end of wall #{v.id}; " \
                                'end it on a straight run of that wall, or at its endpoint for an L corner'
         end
         v
+      end
+
+      def at_vertex?(v, s) = s <= @tol || s >= v.len - @tol
+
+      # A vertex joined to another run (a mitred corner) has a face that runs
+      # past the axis point, so a stem can butt into it; a free end has none.
+      def mitred_vertex?(v, s)
+        cut = s <= @tol ? v.start_cut : v.end_cut
+        cut[:joint] && cut[:kind] == :mitre
       end
 
       def tee!(e, v)
@@ -526,12 +545,47 @@ module Plomada
         end
       end
 
+      # Two runs share the diagonal face of a mitre, and the shared faces only
+      # cancel when both runs cut that diagonal at the same points. A junction
+      # cut that lands inside the partner's mitre zone (a stem butting into a
+      # corner) is carried across: the point where it meets the diagonal is
+      # mapped onto this run's axis.
+      def mitre_partner_cuts(piece)
+        seg = piece.seg
+        out = []
+        ends = []
+        ends << seg.start_cut if piece.start.equal?(seg.start_cut)
+        ends << seg.end_cut if piece.finish.equal?(seg.end_cut)
+        ends.each do |cut|
+          partner = cut[:partner]
+          next unless cut[:kind] == :mitre && partner
+
+          pseg = partner.seg
+          pcut = cut_of(partner)
+          lo, hi = [pcut[:l], pcut[:r]].minmax
+          next if (hi - lo) <= 1e-9
+
+          pseg.junctions.each do |j|
+            [j[:s0], j[:s1]].each do |c|
+              next unless c > lo + 1e-9 && c < hi - 1e-9
+
+              f = (c - pcut[:l]) / (pcut[:r] - pcut[:l])
+              t = pseg.off_l + ((pseg.off_r - pseg.off_l) * f)
+              world = to_world(pseg, [c, t])
+              out << Geometry.dot(Geometry.sub(world, seg.a), seg.u)
+            end
+          end
+        end
+        out
+      end
+
       def emit_piece(piece)
         seg = piece.seg
         lo, hi = piece.span
         cuts = [lo, hi]
         piece.openings.each { |o| cuts.push(o[:s0], o[:s1]) }
         seg.junctions.each { |j| cuts.push(j[:s0], j[:s1]) }
+        cuts.concat(mitre_partner_cuts(piece))
         cuts = merge_values(cuts.select { |c| c >= lo - 1e-9 && c <= hi + 1e-9 }, @cfg[:cut_merge_mm])
         cuts[0] = lo
         cuts[-1] = hi
@@ -665,20 +719,24 @@ module Plomada
 
       # The outer face line of the closed wall with the largest enclosed area,
       # counter-clockwise; nil when the plan has no closed wall.
-      def exterior_outline
-        best = nil
-        @walls.each do |w|
-          next unless w['closed']
+      # The largest building's outline (kept for callers that need one).
+      def exterior_outline = exterior_outlines.first
 
-          area = Geometry.signed_area(w['axis'])
-          best = [w, area] if best.nil? || area.abs > best[1].abs
+      # One outline per building: every closed wall that is not drawn inside
+      # another closed wall, largest first. Each one gets a slab and a roof.
+      def exterior_outlines
+        closed = @walls.select { |w| w['closed'] }
+        outer = closed.reject do |w|
+          probe = w['axis'][0]
+          closed.any? { |o| !o.equal?(w) && Geometry.point_in_polygon?(probe, o['axis']) }
         end
-        return nil unless best
+        outer.sort_by { |w| -Geometry.signed_area(w['axis']).abs }.map { |w| outline_of(w) }
+      end
 
-        w, area = best
-        outer = area.positive? ? :r : :l
+      def outline_of(w)
+        side = Geometry.signed_area(w['axis']).positive? ? :r : :l
         pts = @by_wall[w['id']].map do |seg|
-          to_world(seg, [seg.start_cut[outer], seg.off(outer)])
+          to_world(seg, [seg.start_cut[side], seg.off(side)])
         end
         pts = pts.reverse if Geometry.signed_area(pts).negative?
         { wall: w['id'], points: pts, thickness: w['thickness'].to_f }

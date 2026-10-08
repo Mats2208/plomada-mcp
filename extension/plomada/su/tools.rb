@@ -231,7 +231,7 @@ module Plomada
 
     # Scenes with a level two-point camera at eye height, and their images.
     module Scenes
-      STYLES = { 'shaded' => 2, 'lines_only' => 0 }.freeze
+      STYLES = { 'shaded' => 2, 'hidden_line' => 1, 'lines_only' => 0 }.freeze
       AUTO_HIDDEN_TAGS = %w[Ambientes].freeze # room labels: plan annotation, not part of a render
 
       module_function

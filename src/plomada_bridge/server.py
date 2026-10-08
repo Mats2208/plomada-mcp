@@ -69,6 +69,10 @@ DeadlineMs = Annotated[
     int, Field(ge=1_000, le=600_000, description="ms the job may run in SketchUp before it aborts and reverts")
 ]
 STOREY_PATTERN = r"^[A-Za-z0-9_-]{1,16}$"
+STYLE_HELP = (
+    "shaded = materials and edges; hidden_line = visible edges only on white faces, the input for line or canny "
+    "ControlNets; lines_only = wireframe, every edge including the hidden ones behind walls"
+)
 StoreyName = Annotated[
     str | None,
     Field(
@@ -239,7 +243,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         width: Annotated[int, Field(ge=64, le=8192, description="image width, px")] = cfg.capture_width,
         height: Annotated[int, Field(ge=64, le=8192, description="image height, px")] = cfg.capture_height,
         style: Annotated[
-            Literal["shaded", "hidden_line", "lines_only"], Field(description="render mode for this image only")
+            Literal["shaded", "hidden_line", "lines_only"], Field(description="this image only; " + STYLE_HELP)
         ] = "shaded",
         view: Annotated[
             Literal["current", "fit"], Field(description="current camera, or a south-west view framing the house")
@@ -524,7 +528,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         ] = cfg.eye_height_mm,
         fov: Annotated[float, Field(gt=0, lt=180, description="field of view, degrees")] = cfg.fov_deg,
         two_point: Annotated[bool, Field(description="keep the camera level so verticals stay vertical")] = True,
-        style: Annotated[Literal["shaded", "lines_only"], Field(description="scene render mode")] = "shaded",
+        style: Annotated[Literal["shaded", "hidden_line", "lines_only"], Field(description=STYLE_HELP)] = "shaded",
     ) -> dict[str, Any]:
         """Creates (or updates) a scene with an eye-height camera; with two_point the target is levelled to
         the eye so verticals stay vertical."""
@@ -548,7 +552,7 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         storey: Annotated[
             str | None, Field(pattern=STOREY_PATTERN, description="rooms of this storey only; default every storey")
         ] = None,
-        style: Annotated[Literal["shaded", "lines_only"], Field(description="scene render mode")] = "shaded",
+        style: Annotated[Literal["shaded", "hidden_line", "lines_only"], Field(description=STYLE_HELP)] = "shaded",
         interior_fov: Annotated[float, Field(gt=0, le=120, description="room cameras, vertical degrees")] = 60.0,
         exterior_fov: Annotated[float, Field(gt=0, le=120, description="exterior cameras, vertical degrees")] = 40.0,
         replace: Annotated[bool, Field(description="first erase the scenes an earlier auto_scenes made")] = True,
@@ -574,7 +578,8 @@ def create_server(bridge: Bridge | None = None) -> MCPServer:
         width: Annotated[int, Field(ge=64, le=8192, description="px")] = cfg.export_width,
         height: Annotated[int, Field(ge=64, le=8192, description="px")] = cfg.export_height,
         style: Annotated[
-            Literal["shaded", "hidden_line", "lines_only"] | None, Field(description="override every scene's style")
+            Literal["shaded", "hidden_line", "lines_only"] | None,
+            Field(description="override every scene's style; " + STYLE_HELP),
         ] = None,
         format: Annotated[Literal["png", "jpg"], Field(description="image format")] = "png",
     ) -> dict[str, Any]:

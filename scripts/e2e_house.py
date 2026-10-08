@@ -232,7 +232,8 @@ def main() -> int:
     report = asyncio.run(run())
     out = ROOT / "bench" / f"e2e-{dt.date.today().isoformat()}.json"
     out.parent.mkdir(exist_ok=True)
-    out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(report, indent=2, ensure_ascii=False)
+    out.write_text(text.replace(Path.home().as_posix(), "~") + "\n", encoding="utf-8")  # no local paths in the report
     for name, ok in report["checks"].items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     print(

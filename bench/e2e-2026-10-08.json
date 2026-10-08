@@ -57,7 +57,7 @@
     "shaded": {
       "ms": 115.8,
       "bytes": 37710,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_033007_286.jpg",
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_033007_286.jpg",
       "size": [
         1280,
         720
@@ -66,7 +66,7 @@
     "lines_only": {
       "ms": 100.4,
       "bytes": 71611,
-      "path": "C:/Users/mateo/AppData/Local/Temp/plomada_capture_20261008_033007_386.jpg",
+      "path": "~/AppData/Local/Temp/plomada_capture_20261008_033007_386.jpg",
       "size": [
         1280,
         720
@@ -74,7 +74,7 @@
     }
   },
   "fbx": {
-    "path": "C:/Users/mateo/AppData/Local/Temp/plomada_e2e.fbx",
+    "path": "~/AppData/Local/Temp/plomada_e2e.fbx",
     "format": "fbx",
     "bytes": 1056777,
     "job_id": "j11",

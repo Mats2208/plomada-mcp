@@ -1,0 +1,288 @@
+[
+ {
+  "axis": [
+   [
+    7060.0,
+    3560.0
+   ],
+   [
+    11900.0,
+    3560.0
+   ]
+  ],
+  "closed": false,
+  "id": "P1",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    7060.0,
+    5460.0
+   ],
+   [
+    11900.0,
+    5460.0
+   ]
+  ],
+  "closed": false,
+  "id": "P2",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "axis": [
+   [
+    100.0,
+    100.0
+   ],
+   [
+    11900.0,
+    100.0
+   ],
+   [
+    11900.0,
+    8900.0
+   ],
+   [
+    100.0,
+    8900.0
+   ]
+  ],
+  "closed": true,
+  "id": "EXT",
+  "justification": "center",
+  "kind": "wall",
+  "material": "brick",
+  "thickness": 200.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2200.0,
+  "id": "D1",
+  "kind": "opening",
+  "offset": 5500.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 1000.0
+ },
+ {
+  "hand": "left",
+  "height": 2600.0,
+  "id": "W1",
+  "kind": "opening",
+  "offset": 700.0,
+  "opening_kind": "window",
+  "sill": 0.0,
+  "swing": "in",
+  "tag": "W1",
+  "v": 1,
+  "wall": "EXT",
+  "width": 4200.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W2",
+  "kind": "opening",
+  "offset": 8500.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W2",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 600.0,
+  "id": "W3",
+  "kind": "opening",
+  "offset": 15800.0,
+  "opening_kind": "window",
+  "sill": 1600.0,
+  "swing": "in",
+  "tag": "W3",
+  "v": 1,
+  "wall": "EXT",
+  "width": 800.0
+ },
+ {
+  "hand": "left",
+  "height": 1200.0,
+  "id": "W4",
+  "kind": "opening",
+  "offset": 21900.0,
+  "opening_kind": "window",
+  "sill": 1000.0,
+  "swing": "in",
+  "tag": "W4",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1300.0,
+  "id": "W5",
+  "kind": "opening",
+  "offset": 26500.0,
+  "opening_kind": "window",
+  "sill": 900.0,
+  "swing": "in",
+  "tag": "W5",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 1100.0,
+  "id": "W6",
+  "kind": "opening",
+  "offset": 29300.0,
+  "opening_kind": "window",
+  "sill": 1100.0,
+  "swing": "in",
+  "tag": "W6",
+  "v": 1,
+  "wall": "EXT",
+  "width": 2000.0
+ },
+ {
+  "hand": "left",
+  "height": 2600.0,
+  "id": "W7",
+  "kind": "opening",
+  "offset": 35300.0,
+  "opening_kind": "window",
+  "sill": 0.0,
+  "swing": "in",
+  "tag": "W7",
+  "v": 1,
+  "wall": "EXT",
+  "width": 3000.0
+ },
+ {
+  "axis": [
+   [
+    7060.0,
+    100.0
+   ],
+   [
+    7060.0,
+    8900.0
+   ]
+  ],
+  "closed": false,
+  "id": "B",
+  "justification": "center",
+  "kind": "wall",
+  "material": "gypsum_board",
+  "thickness": 120.0,
+  "v": 1
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D2",
+  "kind": "opening",
+  "offset": 2200.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D2",
+  "v": 1,
+  "wall": "B",
+  "width": 900.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D3",
+  "kind": "opening",
+  "offset": 3950.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D3",
+  "v": 1,
+  "wall": "B",
+  "width": 800.0
+ },
+ {
+  "hand": "left",
+  "height": 2100.0,
+  "id": "D4",
+  "kind": "opening",
+  "offset": 5900.0,
+  "opening_kind": "door",
+  "sill": null,
+  "swing": "in",
+  "tag": "D4",
+  "v": 1,
+  "wall": "B",
+  "width": 900.0
+ },
+ {
+  "area": 58480000.0,
+  "at": [
+   3000.0,
+   2500.0
+  ],
+  "id": "R1",
+  "kind": "room",
+  "name": "LIVING",
+  "number": "01",
+  "v": 1
+ },
+ {
+  "area": 15444000.0,
+  "at": [
+   9500.0,
+   1800.0
+  ],
+  "id": "R2",
+  "kind": "room",
+  "name": "DORMITORIO 2",
+  "number": "03",
+  "v": 1
+ },
+ {
+  "area": 8330400.0,
+  "at": [
+   9500.0,
+   4500.0
+  ],
+  "id": "R3",
+  "kind": "room",
+  "name": "BAÑO",
+  "number": "04",
+  "v": 1
+ },
+ {
+  "area": 15350400.0,
+  "at": [
+   9500.0,
+   7200.0
+  ],
+  "id": "R4",
+  "kind": "room",
+  "name": "DORMITORIO 1",
+  "number": "05",
+  "v": 1
+ }
+]

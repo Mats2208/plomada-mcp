@@ -4,6 +4,62 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-10-08
+
+Several floors, stairs, hip roofs, furniture, terrain and cameras that need no coordinates. Every feature was drawn in
+AutoCAD with AutoCAD MCP Pro, built live in SketchUp 2025 and checked on screen, and is covered by tests that run
+without SketchUp.
+
+### Added
+
+- **Storeys.** `build_from_autocad` and `build_plan` take `storey` (`N00`, `N01`...) and `elevation`. Each floor is
+  one DXF and one call, and a new storey stacks on the one below at that storey's wall height plus its slab
+  thickness. Its slab gets the wells of the stairs coming up from below, the roof under it is erased, and `replace`
+  only touches its own storey. Edit tools and `get_plan` take `storey`; with several storeys and none named they
+  refuse instead of guessing.
+- **Stairs** from the AutoCAD MCP Pro stair records (`stair_kind` straight, L or U, turning left or right). Each
+  flight is a closed concrete solid with a sloped soffit, and L and U stairs get a landing block, all on tag
+  `Escaleras`. Plomada warns when the rise does not match floor to floor or 2R + G falls outside 600-650 mm.
+- **Hip roofs** (`roof="hip"`, also in `add_roof`) on any simple outline: one plane per eave meeting along the
+  straight skeleton, which gives a ridge on rectangles, an apex on squares and valleys on L, T and U plans. They
+  follow the same conventions as the gable, so both have the same ridge height over a rectangle.
+- **Furniture.** The catalogue blocks AutoCAD MCP Pro inserts (`ARCH_<NAME>`, all 20 items) are read from the DXF and
+  built as massing components on tag `Mobiliario`. The new materials are `MAT_mobiliario` and `MAT_sanitario`.
+- **`add_terrain`** builds a lawn slab on tag `Entorno` around everything Plomada built, its top at the underside of the
+  ground-floor slab.
+- **`auto_scenes`** creates the scenes, so you don't place cameras by hand:
+  - **Interiors.** One per room. The camera stands in the corner with the longest view across, kept clear of walls,
+    stairs, wells and furniture.
+  - **Exteriors.** Four at eye level, each backed off until every vertex of the building fits the frame.
+  - **Aerial.** One view from above.
+
+  Room labels are hidden in these scenes.
+- Fixtures: the two-storey house (`tests/fixtures/casa_2_plantas_N00.dxf`, `_N01.dxf`). It has a 17-riser L stair and 16
+  catalogue pieces.
+
+### Changed
+
+- **The wall solve is split per building.** Each building, made of walls that touch, is solved on its own and in its
+  own job step. One house's sill heights no longer slice the walls of the others. The four-building plan's longest
+  tick drops from 124 ms to 33 ms, or 39 ms with hip roofs.
+- **Refused plans still change nothing.** A plan the solver refuses is now caught in the first job steps, which change
+  nothing. The model stays as it was, and the -32004 message is the same as before.
+- **26 tools,** up from 24.
+- **Tests.** 112 minitest tests and 52 pytest tests, up from 75 and 48.
+
+### Measured
+
+- **Reference house.** 0.91 s p50 and a longest tick of 34 ms (`bench/results-2026-10-08.json`). The e2e passes 16/16.
+- **Two-storey house.** 0.57 s for N00 and 0.69 s for N01, both wall groups manifold. Its 10 automatic scenes take
+  0.41 s.
+
+### Known limits
+
+- **Storeys stack straight up**, so split levels are not supported.
+- **Stair wells are not recut.** Rebuilding a lower storey does not recut the well above; Plomada warns.
+- **Stairs and furniture are massing only.**
+- **Hip roofs take no courtyards.**
+
 ## [0.1.1] - 2026-10-08
 
 Fixes found by building four plans the 0.1.0 solver had never seen (`tests/fixtures/casos_prueba.dxf`): the reference
@@ -68,5 +124,6 @@ First release. The SketchUp extension and the Python bridge version together.
 - PBR is detected through `Sketchup::Material#metallic_factor=`, the method SketchUp 2025 actually has, not through
   `metalness=`.
 
+[0.2.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.2.0
 [0.1.1]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Mats2208/plomada-mcp/releases/tag/v0.1.0

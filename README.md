@@ -2,9 +2,9 @@
 
 # Plomada
 
-**Hand Claude an AutoCAD plan and get the exact 3D house in SketchUp: manifold walls, real openings, one Ctrl+Z.**
+**Hand Claude an AutoCAD plan and get the exact 3D house in SketchUp: manifold walls, real openings, stairs, roofs, furniture, one Ctrl+Z per call.**
 
-[![Version](https://img.shields.io/badge/version-0.1.1-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue?style=flat-square)](https://github.com/Mats2208/plomada-mcp/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/Mats2208/plomada-mcp/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/Mats2208/plomada-mcp/actions/workflows/ci.yml)
 [![SketchUp](https://img.shields.io/badge/SketchUp-2025%20Pro-005F9E?style=flat-square)](https://www.sketchup.com)
 [![Python](https://img.shields.io/badge/python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
@@ -19,7 +19,7 @@
 <td width="50%"><img src="docs/img/e2e_lines.jpg" alt="The same house in wireframe: partitions, door frames, window frames and room labels inside the walls" width="100%"/></td>
 </tr>
 </table>
-<sub>Both images came back from <code>capture_view</code> in the e2e run, 116 ms and 100 ms after the call. Look at the wireframe: the three
+<sub>Both images came back from <code>capture_view</code> in the e2e run, 139 ms and 114 ms after the call. Look at the wireframe: the three
 doors in the partition, the two partitions butting into it and into the exterior wall, and the room labels on the floor
 (<strong>01 LIVING 58.48 m²</strong>) all came from the DXF records, not from a prompt.</sub>
 
@@ -27,11 +27,11 @@ doors in the partition, the two partitions butting into it and into the exterior
 
 <table>
 <tr>
-<td align="center"><strong>0.81 s</strong><br/><sub>DXF to finished house (p50)</sub></td>
-<td align="center"><strong>24</strong><br/><sub>MCP tools</sub></td>
+<td align="center"><strong>0.91 s</strong><br/><sub>DXF to finished house (p50)</sub></td>
+<td align="center"><strong>26</strong><br/><sub>MCP tools</sub></td>
 <td align="center"><strong>31 ms</strong><br/><sub>model_info p50</sub></td>
-<td align="center"><strong>46 ms</strong><br/><sub>longest pump tick</sub></td>
-<td align="center"><strong>115</strong><br/><sub>tests, no SketchUp needed</sub></td>
+<td align="center"><strong>34 ms</strong><br/><sub>longest pump tick</sub></td>
+<td align="center"><strong>164</strong><br/><sub>tests, no SketchUp needed</sub></td>
 </tr>
 </table>
 
@@ -66,13 +66,28 @@ pure Ruby, and builds the house inside a running SketchUp, one small step per UI
 | **Walls** | One closed manifold per storey | Mitred L corners, T junctions trimmed to the near face, X crossings cut at the faces. No booleans, no `find_faces`. |
 | **Openings** | Real holes with reveals | Two jambs, a soffit, and a sill when the sill is above 0, in every opening. |
 | **Carpentry** | Window and door components | 50 × 50 mm frame ring and a 6 mm pane at mid-thickness; 40 mm door leaf hinged per the plan's hand and swing. |
-| **Rest of the storey** | Slab · flat or gable roof · room labels | Slab under the outer face, roof with a 400 mm overhang, 3D labels with name, number and m². |
+| **Storeys and stairs** | One DXF per floor, stacked | `storey="N01"` puts a floor on top of the one below. Its slab gets the wells of the stairs coming up, and the roof underneath goes. Straight, L and U stairs come from the AutoCAD stair records: concrete flights with a sloped soffit and a landing. |
+| **Roofs** | Flat · gable · hip | Hip roofs on any simple outline (L, T, U...), solved as a straight skeleton: ridges, hips and valleys at one pitch. Every building in the DXF gets its own slab and roof. |
+| **Furniture and ground** | Catalogue blocks · terrain | The 20 `arch_catalogue_insert` blocks (beds, sofas, tables, WC...) become massing components on tag `Mobiliario`. `add_terrain` lays a lawn slab around the buildings. |
+| **Rooms** | 3D labels | Name, number and m² on the floor of each room. |
 | **Undo** | One Ctrl+Z per tool call | All steps of a job chain into one operation. A failed, expired or cancelled job reverts itself. |
 | **Edits** | Move, resize, add | `move_opening`, `set_wall_height`, `add_wall`, `add_opening` re-solve from the plan stored in the model, never from the DXF. |
-| **Views** | Captures, scenes, exports | JPEG captures under 350 KB, two-point eye-height scenes, scene images, skp / fbx / obj export. |
+| **Views** | Captures, scenes, exports | `auto_scenes` makes a camera inside every room plus four eye-level exteriors and an aerial, with no coordinates. JPEG captures under 350 KB, scene images, skp / fbx / obj export. |
 
-Everything is in millimetres and named for the studio pipeline: groups `N00_muros`, `N00_losa`, `N00_techo`; tags
-`Muros`, `Carpinterias`, `Losas`, `Ambientes`; materials `MAT_revoque_blanco`, `MAT_vidrio`, `MAT_madera` and the rest.
+Everything is in millimetres and named for the studio pipeline: groups `N00_muros`, `N01_losa`, `N01_techo`,
+`N00_escalera_S1`; tags `Muros`, `Carpinterias`, `Losas`, `Escaleras`, `Ambientes`, `Mobiliario`, `Entorno`; materials
+`MAT_revoque_blanco`, `MAT_vidrio`, `MAT_madera`, `MAT_mobiliario` and the rest.
+
+<table>
+<tr>
+<td width="33%"><img src="docs/img/dos_plantas_aerea.png" alt="Two-storey house with a hip roof on a lawn, from the A_aerea scene auto_scenes made" width="100%"/></td>
+<td width="33%"><img src="docs/img/dos_plantas_escalera.jpg" alt="Inside the ground floor: the L stair with its landing climbing to the well in the upper slab" width="100%"/></td>
+<td width="33%"><img src="docs/img/dos_plantas_living.png" alt="The living room scene auto_scenes made: sofa, armchair and coffee table from the AutoCAD catalogue blocks" width="100%"/></td>
+</tr>
+</table>
+<sub>The two-storey fixture: two DXF files drawn with AutoCAD MCP Pro (<code>tests/fixtures/casa_2_plantas_N00.dxf</code>,
+<code>_N01.dxf</code>), a 17-riser L stair, 16 catalogue pieces. Left and right are <code>auto_scenes</code> output, the middle a
+scene placed by hand at the stair, before the furniture went in.</sub>
 
 ## Every number here was measured
 
@@ -82,16 +97,18 @@ and [`bench/e2e-2026-10-08.json`](bench/e2e-2026-10-08.json).
 
 | Target | Budget | Measured |
 |---|---|---|
-| `build_from_autocad` on the fixture, end to end | < 3.0 s | **0.81 s** p50, 0.85 s max of 5 |
-| `model_info`, 200 calls | p50 < 60 ms, p95 < 150 ms | **31.3 ms** p50, 34.6 ms p95 |
-| `capture_view` 1280 × 720 | < 400 ms | **100 ms** p50, 120 ms max of 10 |
-| Longest pump tick while building and answering | < 100 ms | **46.4 ms** (preparing the build and its first step) |
+| `build_from_autocad` on the fixture, end to end | < 3.0 s | **0.91 s** p50, 0.94 s max of 5 |
+| `model_info`, 200 calls | p50 < 60 ms, p95 < 150 ms | **31.1 ms** p50, 32.5 ms p95 |
+| `capture_view` 1280 × 720 | < 400 ms | **100 ms** p50, 182 ms max of 10 |
+| Longest pump tick while building and answering | < 100 ms | **34.1 ms** |
 | Wall faces built / internal faces left / manifold | | 78 / 0 / true |
+| Four-building plan (`tests/fixtures/casos_prueba.dxf`), longest tick | < 100 ms | **33 ms** flat, 39 ms hip (124 ms in 0.1.1) |
+| Two-storey house, one call per floor | | 0.57 s + 0.69 s, both wall groups manifold |
 
 `python scripts/bench.py --certify` re-runs these and exits 1 if any target is missed.
 
 **What does not fit in 100 ms, said plainly.** A viewport capture is one native `view.write_image` call that cannot be
-split; in the committed run its tick took 88.9 ms, and it can go past 100 ms, which is why the bench reports it apart
+split; in the committed run its tick took 150 ms, and it can go past 100 ms, which is why the bench reports it apart
 from the pump. An FBX export is also one native call: 1371 ms the first time in the e2e run. `execute_ruby` runs your
 code in one tick.
 
@@ -112,7 +129,7 @@ The script copies `plomada.rb` and `plomada\` into the SketchUp Plugins folder a
 It registers `plomada-mcp` for Claude Code with `claude mcp add -s user sketchup`. It also offers, y/n, to move the old
 Tarkiin plugin out of the Plugins folder. Restart SketchUp, reconnect the MCP, and call `status`.
 
-To install by hand instead, add [`plomada-0.1.1.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
+To install by hand instead, add [`plomada-0.2.0.rbz`](https://github.com/Mats2208/plomada-mcp/releases) through
 **Extensions > Extension Manager > Install Extension**, then register `.venv\Scripts\plomada-mcp.exe` as a stdio server.
 
 ## Use
@@ -121,20 +138,31 @@ To install by hand instead, add [`plomada-0.1.1.rbz`](https://github.com/Mats220
 
 ```text
 status              -> protocol 1, pro true, entities_build true, pbr true, fbx_export true
-build_from_autocad  -> walls 4, openings 11 (4 doors, 7 windows), rooms 4, manifold true, 24 steps, 0.81 s
-capture_view        -> image/jpeg 1280x720, 37 710 bytes
+build_from_autocad  -> walls 4, openings 11 (4 doors, 7 windows), rooms 4, manifold true, 27 steps, 0.91 s
+capture_view        -> image/jpeg 1280x720, 37 723 bytes
 move_opening W2 8000 -> manifold true; the hole and the window moved together, still one undo step
+```
+
+Two floors are two calls, one DXF each:
+
+```text
+build_from_autocad casa_N00.dxf storey=N00 roof=flat -> stairs 1, furniture 6, elevation 0
+build_from_autocad casa_N01.dxf storey=N01 roof=hip  -> elevation 2950, stair_wells 1, "roof of N00 erased: N01 now sits on it"
+add_terrain                                          -> Terreno 23 x 21 m, top at -150
+auto_scenes                                          -> I_N00_01_Living ... I_N01_13_Hall, E1_suroeste ... E4_noroeste, A_aerea
+export_scene_images dir=.../04_pases                 -> 10 PNG
 ```
 
 | Kind | Tools |
 |---|---|
 | **Read-only** | `status` · `model_info` · `list_entities` · `list_tags` · `list_materials` · `get_plan` · `capture_view` · `job_status` |
 | **Build** | `build_from_autocad` · `build_plan` |
-| **Edit** | `add_wall` · `add_opening` · `move_opening` · `set_wall_height` · `add_slab` · `add_roof` · `set_material` |
-| **Scenes and exports** | `create_scene` · `export_scene_images` · `export_model` |
+| **Edit** | `add_wall` · `add_opening` · `move_opening` · `set_wall_height` · `add_slab` · `add_roof` · `add_terrain` · `set_material` |
+| **Scenes and exports** | `auto_scenes` · `create_scene` · `export_scene_images` · `export_model` |
 | **Housekeeping** | `reset_plomada` · `undo` · `job_cancel` · `execute_ruby` (off by default) |
 
-Every length is millimetres. Every tool carries honest `readOnlyHint`, `destructiveHint` and `idempotentHint`
+Every length is millimetres. Edits and `get_plan` take `storey`; with several storeys in the model and none named they
+refuse instead of guessing. Every tool carries honest `readOnlyHint`, `destructiveHint` and `idempotentHint`
 annotations, and refusals name the field: `walls[2].thickness must be greater than 0, got -200`.
 
 ## How it works
@@ -151,7 +179,10 @@ Claude ──stdio──> plomada-mcp (Python)  ──127.0.0.1:7883, length-pre
 - **Geometry first, model second.** `Plomada::Geometry` has no SketchUp dependency. Each wall segment is cut into a grid of
   cells at jambs, junction faces and every sill and head of the storey. Cells inside an opening are skipped, shared cell
   sides cancel, and coplanar pieces merge into faces with holes. The result is a closed manifold by construction, and it is
-  unit-tested before SketchUp sees it.
+  unit-tested before SketchUp sees it. Each building (walls that touch) is solved on its own, one per job step, so a plan
+  of many houses never holds the UI in one tick, and nothing touches the model until every building has solved.
+- **Storeys are built flat, then raised.** A storey is built at z 0 like a one-storey house; its last step stamps what it
+  made with the storey name and lifts it to the elevation in one transform.
 - **One undo per call.** The first step opens the operation and stamps the job on the model. Every later step chains onto
   it transparently. SketchUp drops operations that change nothing, so without the stamp a no-op first step would let the
   chain merge into the previous undo entry.
@@ -168,7 +199,7 @@ source.
 
 | | Transport | Auth | Ruby eval by default | Architecture tools | Needs booleans | Tests |
 |---|---|---|---|---|---|---|
-| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, slab, roof, rooms, scenes | No | 75 minitest + 48 pytest, live e2e, bench |
+| **Plomada** | Length-prefixed JSON-RPC on loopback TCP, UI-timer pump, stdio bridge | 64-hex token, constant-time compare, required | Off | Plan in: walls, openings, carpentry, storeys, stairs, slabs, flat/gable/hip roofs, furniture, terrain, rooms, automatic scenes | No | 112 minitest + 52 pytest, live e2e, bench |
 | [Tarkiin/SketchUp-MCP](https://github.com/Tarkiin/SketchUp-MCP) | HTTP on 127.0.0.1:8080, served by Ruby threads, `Access-Control-Allow-Origin: *` | None | On | Primitives and `create_roof_truss` | No | None |
 | [zinin/sketchup-mcp2](https://github.com/zinin/sketchup-mcp2) | Length-prefixed JSON-RPC on TCP, UI-timer pump, stdio bridge | None (loopback default) | On (`eval_enabled: true`) | Woodworking joints | Yes (`Group#subtract`) | Ruby minitest + Python |
 | [PMajesty/sk_ruby_mcp](https://github.com/PMajesty/sk_ruby_mcp) | Streamable HTTP inside SketchUp, Host/Origin guard, no bridge | Optional, empty by default | On | Massing boxes, façade openings as glued components | No | Ruby test suite + soak scripts |
@@ -176,10 +207,15 @@ source.
 
 ## What it does not do
 
-- **One storey, no stairs.** Stair records in the DXF are skipped with a warning.
+- **Storeys stack straight up.** One storey per DXF, each on top of the one below; no split levels or mezzanines.
+  Rebuilding a lower storey does not recut the stair well in the slab above: Plomada warns and you build that storey again.
+- **Stairs are massing.** Solid concrete flights and landing, no railings; the well is the stair's whole footprint.
 - **Straight walls only.** Curved axes are refused, as are three or more walls ending at one point and junctions sharper
   than 5°.
-- **Gable roofs need a rectangular footprint.** Anything else gets `gable needs a rectangular footprint; use flat`.
+- **Roofs.** A gable needs a rectangular footprint. A hip takes any simple outline but no courtyard, and an overhang that
+  makes the eave line cross itself is refused.
+- **Furniture is massing too.** A few boxes per catalogue item, for scenes and render guidance; blocks outside the
+  AutoCAD MCP Pro catalogue are skipped with a warning.
 - **`export_model` skp needs a model saved once.** SketchUp refuses to copy an untitled model, and `Model#save` can
   raise a modal prompt that would freeze the pump.
 - **`execute_ruby` is a guard against mistakes, not a sandbox.** It is off until you tick the box in
@@ -188,8 +224,8 @@ source.
 ## Development
 
 ```powershell
-uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (48 tests)
-ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (75 tests, Ruby 3.2, no SketchUp)
+uv run pytest                     # bridge: DXF, models, errors, socket, MCP tools (52 tests)
+ruby -Itest test/run_all.rb       # extension: geometry, plan, pump (112 tests, Ruby 3.2, no SketchUp)
 uv run ruff check . ; uv run ruff format --check .
 uv run python scripts/e2e_house.py        # live: needs SketchUp with the extension
 uv run python scripts/bench.py --certify  # live: writes bench/results-<date>.json
@@ -208,7 +244,7 @@ extension/plomada.rb        loader (registers the extension)
 extension/plomada/          the extension: pump, protocol, geometry/ (pure Ruby), su/ (SketchUp side)
 src/plomada_bridge/         the stdio MCP server: tools, socket client, DXF reader, pydantic models
 test/                       minitest suite with FakeSocket, FakeModel, FakeEntities, FakeView
-tests/                      pytest suite and fixtures (the reference DXF and its decoded records)
+tests/                      pytest suite and fixtures (the reference house, the four test buildings, the two-storey house)
 scripts/                    install.ps1, e2e_house.py, bench.py, build_rbz.py, check_compat.py
 bench/                      measured results
 docs/img/                   images from the e2e run
